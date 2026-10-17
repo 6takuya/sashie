@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>挿絵教材化アプリ Ver4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+/* 黒板の緑とチョークの黄を軸に、左に手順、右に結果の2段構え（狭い画面では1列） */
+:root{
+  --bg:#f3f5f1; --panel:#ffffff; --ink:#1f2a26; --muted:#5d6b65; --line:#d6ddd8;
+  --board:#2f5d50; --board-ink:#ffffff; --chalk:#e8b931; --chalk-soft:#fbf1cf;
+  --ok:#2e7d4f; --warn:#a15c00; --danger:#b3261e;
+  --f-display:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --f-body:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a18; --panel:#1d2522; --ink:#e7ece9; --muted:#9db0a8; --line:#33403b;
+  --board:#3f7a69; --board-ink:#ffffff; --chalk:#f0c84b; --chalk-soft:#3a3420;
+  --ok:#6cc792; --warn:#e3a54a; --danger:#ef7a72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a18; --panel:#1d2522; --ink:#e7ece9; --muted:#9db0a8; --line:#33403b;
+  --board:#3f7a69; --board-ink:#ffffff; --chalk:#f0c84b; --chalk-soft:#3a3420;
+  --ok:#6cc792; --warn:#e3a54a; --danger:#ef7a72; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7}
+header.top{background:var(--board);color:var(--board-ink);padding:14px 20px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+header.top h1{font-family:var(--f-display);font-weight:900;font-size:1.45rem;margin:0;letter-spacing:.04em}
+header.top h1 span{color:var(--chalk)}
+header.top p{margin:0;opacity:.9;font-size:.9rem}
+main{padding:20px;display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:20px;align-items:start;max-width:1500px;margin:0 auto}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.steps{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h2{font-family:var(--f-display);font-size:1.05rem;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card h2 .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--board);color:var(--board-ink);font-size:.85rem}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row>div{flex:1 1 120px;min-width:0}
+input[type=text],input[type=number],select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+textarea{min-height:140px;font-size:.85rem;line-height:1.5;font-variant-numeric:tabular-nums}
+.drop{border:3px dashed var(--board);border-radius:var(--radius);padding:22px 14px;text-align:center;color:var(--ink);cursor:pointer;background:color-mix(in srgb,var(--board) 9%,var(--panel));transition:background .15s,transform .15s}
+.drop .big{display:block;font-family:var(--f-display);font-size:1.15rem;font-weight:900;color:var(--board);margin-bottom:4px}
+.drop .icon{display:block;font-size:2rem;line-height:1;margin-bottom:6px;color:var(--board)}
+.drop .pick{display:inline-block;margin-top:8px;background:var(--board);color:var(--board-ink);border-radius:8px;padding:4px 14px;font-weight:700}
+.drop:hover{background:color-mix(in srgb,var(--board) 16%,var(--panel))}
+.drop.over{background:var(--chalk-soft);border-color:var(--chalk);transform:scale(1.01)}
+.drop strong{color:var(--ink)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 14px}
+button.primary{background:var(--board);color:var(--board-ink);border-color:var(--board);font-weight:700}
+button.chalk{background:var(--chalk);color:#2b2300;border-color:var(--chalk);font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.drop:focus-visible{outline:3px solid var(--chalk);outline-offset:2px}
+.checks{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.checks label{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:.92rem;margin:0}
+.file{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.file .fname{font-weight:700;word-break:break-all}
+.file .meta{font-size:.82rem;color:var(--muted)}
+.pill{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:99px;background:var(--chalk-soft);color:var(--ink);margin-left:4px}
+.pill.ok{background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.hint{font-size:.82rem;color:var(--muted);margin:6px 0 0}
+.progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;width:0;background:var(--chalk);transition:width .2s}
+#status{font-size:.85rem;color:var(--muted);margin-top:6px;min-height:1.4em}
+.results{min-width:0}
+.res-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.res-head h2{font-family:var(--f-display);margin:0;font-size:1.2rem}
+.summary{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.layout{display:grid;grid-template-columns:240px 1fr;gap:16px}
+@media (max-width:700px){.layout{grid-template-columns:1fr}}
+.units{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);max-height:70vh;overflow:auto}
+.units .urow{display:flex;align-items:center;border-bottom:1px solid var(--line)}
+.units .urow input{margin:0 0 0 10px;flex:none}
+.units button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:0;border-radius:0;padding:8px 12px 8px 8px;background:transparent}
+.units button[aria-current="true"]{background:var(--chalk-soft);font-weight:700}
+.units .c{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.unitview{min-width:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button[aria-pressed="true"]{background:var(--board);color:var(--board-ink);border-color:var(--board)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.tile.off{opacity:.4}
+.tile .img{height:120px;display:grid;place-items:center;background:repeating-conic-gradient(var(--bg) 0 25%,var(--panel) 0 50%) 0 0/16px 16px;border-radius:6px;cursor:zoom-in;overflow:hidden}
+.tile img{max-height:120px;max-width:100%;object-fit:contain}
+.tile .nm{font-size:.78rem;word-break:break-all;font-variant-numeric:tabular-nums}
+.tile label{display:flex;gap:6px;align-items:center;color:var(--ink);font-size:.8rem;margin:0}
+.empty{background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius);padding:28px;color:var(--muted)}
+.empty h3{font-family:var(--f-display);color:var(--ink);margin:0 0 8px}
+.empty ol{margin:0;padding-left:1.2em}
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--ink);max-width:min(92vw,1100px);padding:14px}
+dialog img{max-height:75vh;max-width:100%;display:block;margin:0 auto;background:#fff}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.rules ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.rules{border-color:var(--chalk);background:color-mix(in srgb,var(--chalk-soft) 55%,var(--panel))}
+.rules h2 .n{background:var(--chalk);color:#2b2300}
+.agree{display:flex!important;gap:8px;align-items:center;color:var(--ink)!important;font-weight:700;margin-top:10px!important;font-size:.95rem!important}
+.fhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+button.small{padding:3px 10px;font-size:.82rem}
+details{margin-top:6px}
+summary{cursor:pointer;font-weight:700;font-size:.9rem;color:var(--board)}
+.tablewrap{max-height:320px;overflow:auto;margin-top:6px;border:1px solid var(--line);border-radius:8px}
+.utable{width:100%;border-collapse:collapse;font-size:.85rem}
+.utable th{white-space:nowrap;position:sticky;top:0;background:var(--panel);text-align:left;font-weight:700;color:var(--muted);padding:4px 6px;border-bottom:1px solid var(--line)}
+.utable td{padding:2px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+.utable td.no{color:var(--muted);font-variant-numeric:tabular-nums;width:2.6em;text-align:right;padding-right:6px}
+.utable input{padding:3px 6px;font-size:.85rem}
+.utable input[type=number]{width:4.6em}
+.utable tr.need td{background:var(--chalk-soft)}
+.utable tr.volstart td{border-top:3px solid var(--board)}
+.utable select{padding:2px 4px;font-size:.85rem}
+.utable button.x{border:0;background:transparent;color:var(--muted);padding:2px 6px}
+.utable img.snip{display:block;max-width:100%;max-height:64px;margin-top:3px;cursor:zoom-in;border:1px solid var(--line);border-radius:4px;background:#fff}
+.pill.warn{background:color-mix(in srgb,var(--warn) 22%,transparent)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.flist{display:flex;flex-direction:column;gap:0}
+.unitsbox{border-top:2px solid var(--board);margin-top:14px;padding-top:10px}
+.unitsbox h3{font-family:var(--f-display);font-size:1rem;margin:0}
+.pagefix{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px}
+.pagefix img{width:120px;border:1px solid var(--line);background:#fff;flex:none}
+.pf-body{min-width:0;display:flex;flex-direction:column;gap:6px}
+.pf-row{display:flex;align-items:center;gap:4px;font-weight:700}
+.pf-row input{width:5em}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:4px 8px;margin:0}
+fieldset label{display:flex;gap:6px;align-items:center;color:var(--ink);margin:2px 0;font-size:.85rem}
+legend{font-size:.8rem;color:var(--muted)}
+@media (max-width:420px){.pagefix{flex-direction:column}}
+.pd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.pd-count{font-weight:700;margin:10px 0 6px}
+.pd-preview{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;place-items:center}
+.pd-sheet{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);display:flex;flex-direction:column;padding:4px;gap:3px}
+.pd-sheet .cells{flex:1;display:grid;gap:3px;min-height:0}
+.pd-sheet .cell{display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;overflow:hidden;outline:1px dashed #e3e3e3}
+.pd-sheet .cell img{width:100%;height:100%;object-fit:contain}
+.pd-sheet .foot{font-size:7px;color:#555}
+#printDlg{width:min(92vw,760px)}
+.rules .first{margin:0 0 10px;padding:8px 10px;border-radius:8px;background:var(--chalk);color:#2b2300;font-weight:700;font-size:.9rem}
+.rules.done .first{display:none}
+.rules.done{border-color:var(--line);background:var(--panel)}
+.agree{padding:8px 10px;border:2px solid var(--chalk);border-radius:8px;background:var(--panel)}
+.rules.done .agree{border-color:var(--ok)}
+.agree input{width:20px;height:20px}
+.locked{position:relative}
+.locked::after{content:"先に「利用条件」を確認し、同意のチェックを入れてください";position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:12px;background:color-mix(in srgb,var(--panel) 92%,transparent);color:var(--ink);font-weight:700;font-size:1.05rem;border-radius:var(--radius);pointer-events:none}
+.tile button.small{align-self:flex-start}
+#cropDlg{width:min(96vw,1100px)}
+.crop-wrap{position:relative;overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:8px;background:#888}
+.crop-wrap canvas{display:block}
+.crop-box{position:absolute;border:2px solid var(--chalk);box-shadow:0 0 0 9999px rgba(0,0,0,.45);cursor:move;touch-action:none}
+.crop-box i{position:absolute;width:14px;height:14px;background:var(--chalk);border:2px solid #fff;border-radius:3px;transform:translate(-50%,-50%)}
+.crop-box i[data-h=nw]{left:0;top:0;cursor:nwse-resize}.crop-box i[data-h=n]{left:50%;top:0;cursor:ns-resize}.crop-box i[data-h=ne]{left:100%;top:0;cursor:nesw-resize}
+.crop-box i[data-h=e]{left:100%;top:50%;cursor:ew-resize}.crop-box i[data-h=se]{left:100%;top:100%;cursor:nwse-resize}.crop-box i[data-h=s]{left:50%;top:100%;cursor:ns-resize}
+.crop-box i[data-h=sw]{left:0;top:100%;cursor:nesw-resize}.crop-box i[data-h=w]{left:0;top:50%;cursor:ew-resize}
+.save-box{display:flex;flex-direction:column;gap:8px}
+header.top a.manual{margin-left:auto;align-self:center;color:var(--board);background:var(--chalk);font-weight:700;text-decoration:none;padding:6px 14px;border-radius:99px;font-size:.9rem;white-space:nowrap}
+.terms{margin:0 0 4px;padding-left:1.4em;font-size:.86rem;line-height:1.65}
+.terms li{margin:0 0 4px}
+.srcrow{display:flex!important;gap:6px;align-items:center;color:var(--ink)!important;font-size:.85rem!important}
+header.top h1 .ver{font-size:.72rem;font-weight:700;background:var(--chalk);color:#2b2300;border-radius:99px;padding:2px 9px;margin-left:10px;vertical-align:middle;letter-spacing:.02em;font-family:var(--f-body)}
+.dest{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.dest legend{grid-column:1/-1}
+.cloud{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:2px dashed var(--board);border-radius:8px}
+.cloud-step{margin:0;font-size:.85rem}
+a.btnlink{display:block;text-align:center;padding:8px 12px;border-radius:8px;background:var(--board);color:var(--board-ink);font-weight:700;text-decoration:none}
+#cloudDlg{max-width:min(94vw,640px)}
+#cloudDlg ol{padding-left:1.3em}
+.dest-hint{margin:0;padding:8px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font-size:.82rem;line-height:1.6}
+.pill.bg{background:color-mix(in srgb,var(--board) 18%,transparent)}
+.tile .acts{display:flex;flex-wrap:wrap;gap:4px}
+#viewerImg{background:repeating-conic-gradient(#e6e9e7 0 25%,#ffffff 0 50%) 0 0/16px 16px}
+#bgDlg{width:min(96vw,1100px)}
+.bg-body{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start}
+@media (max-width:820px){.bg-body{grid-template-columns:1fr}}
+.bg-stage{position:relative;border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:66vh;display:grid;place-items:center;background:repeating-conic-gradient(#d9dedb 0 25%,#ffffff 0 50%) 0 0/18px 18px;min-height:200px}
+.bg-stage.white{background:#fff}
+.bg-stage canvas{display:block;touch-action:none;cursor:crosshair;max-width:100%}
+.bg-tools{display:flex;flex-direction:column;gap:10px;min-width:0}
+.bg-tools fieldset{display:flex;flex-direction:column;gap:2px}
+.tool-keep{color:#1b7f3b;font-weight:700}.tool-erase{color:#c0392b;font-weight:700}
+#bgInfo{margin:0}
+#bgBusy{font-size:.82rem;color:var(--muted);min-height:1.4em;margin:0}
+#printArea{display:none}
+@media print{
+  @page{size:A4 portrait;margin:5mm}
+  @page land{size:A4 landscape;margin:5mm}
+  @page port{size:A4 portrait;margin:5mm}
+  body{background:#fff}
+  header.top,main,dialog{display:none!important}
+  #printArea{display:block}
+  .sheet{page:port;break-after:page;width:199mm;height:286mm;display:flex;flex-direction:column;gap:2mm;overflow:hidden}
+  .sheet:last-child{break-after:auto}
+  .sheet.land{page:land;width:286mm;height:199mm}
+  .sheet .cells{flex:1;display:grid;gap:3mm;min-height:0}
+  .sheet .cell{display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;overflow:hidden}
+  .sheet .cell img{width:100%;height:100%;object-fit:contain}
+  .sheet .foot{font-size:8pt;color:#444;font-family:var(--f-body)}
+}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>挿絵<span>教材化</span>アプリ<small class="ver">Ver4</small></h1>
+  <p>指導書の付属データ（PDF）から、挿絵・まとまり・式・数直線を単元ごとに取り出して保存・印刷します。PDFはこのパソコンの中だけで処理し、外部には送りません。</p>
+  <a class="manual" href="manual.pdf" target="_blank" rel="noopener">使い方（PDF）</a>
+</header>
+<main>
+  <section class="steps" aria-label="手順">
+    <div class="card rules">
+      <p class="first" id="firstNote">はじめに：下の利用条件をお読みいただき、同意のチェックを入れてください。同意すると取り出しができます。</p>
+      <h2><span class="n">!</span>利用条件</h2>
+      <p class="hint" style="margin:0 0 6px">このアプリは、利用者が正規に入手した指導書の付属データ（PDF）から、利用者自身のパソコンの中で画像を取り出す道具です。PDFや画像を外部に送ることはありません。</p>
+      <ol class="terms">
+        <li>利用できるのは、<strong>学校（設置者）が購入し、利用が認められている指導書の付属データ</strong>に限ります。</li>
+        <li>取り出した画像は、<strong>著作権法第35条</strong>（学校その他の教育機関における複製等）および<strong>付属データの使用許諾条件</strong>の範囲で、授業の準備と授業での提示・配布に必要な分だけ利用します。</li>
+        <li>画像は、自分のパソコン、USBメモリ、自分専用のドライブなど、<strong>自分だけが見られる場所</strong>に保存します。インターネット上への公開や、だれでも見られる場所への保存・共有はしません。</li>
+        <li>ほかの教職員との共有や、研究会資料・学級通信・動画など<strong>授業の外での利用</strong>は、使用許諾条件を確認し、必要に応じて<strong>発行者の許諾</strong>を得たうえで、<strong>出典（教科書名・発行者）を明示</strong>して行います。</li>
+        <li>利用が法令や使用許諾条件に合っているかの判断と責任は、<strong>利用者</strong>にあります。本アプリの開発者は、本アプリの利用およびそれによって生じた結果について、責任を負いません。</li>
+      </ol>
+      <label class="agree" for="agree"><input id="agree" type="checkbox">上記の利用条件を確認し、同意します</label>
+    </div>
+    <div class="card">
+      <h2><span class="n">1</span>教科書を選ぶ</h2>
+      <div class="row">
+        <div><label for="grade">学年</label>
+          <select id="grade"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+        <div><label for="subject">教科</label>
+          <select id="subject"><option>国語</option><option selected>算数</option><option>社会</option><option>理科</option><option>生活</option><option>道徳</option><option>その他</option></select></div>
+      </div>
+      <div style="margin-top:8px"><label for="source">出典（教科書名・会社名）</label>
+        <input id="source" type="text" placeholder="例：東京書籍「新編 新しい算数4上・4下」"></div>
+      <div id="drop" class="drop" tabindex="0" role="button" aria-label="PDFを選ぶ" style="margin-top:12px">
+        <span class="icon" aria-hidden="true">⬇</span><span class="big">PDFをこの枠の中にドラッグ</span>上・下巻など、何こでもまとめて入れられます<br><span class="pick">クリックしてPDFを選ぶ</span>
+        <input id="fileInput" type="file" accept="application/pdf" multiple hidden>
+      </div>
+      <div class="checks">
+        <label><input id="optGroup" type="checkbox" checked>まとまり画像も作る（枠の中や近くに並ぶ挿絵を1枚に）</label>
+        <label><input id="optFig" type="checkbox" checked>式・数直線も取り出す（教科書の大きな式、テープ図・数直線など）</label>
+      </div>
+      <div id="files"></div>
+    </div>
+    <div class="card">
+      <h2><span class="n">2</span>取り出す</h2>
+      <div class="btnrow"><button id="run" class="primary" disabled>挿絵を取り出す</button><button id="reset" type="button">最初からやり直す</button></div>
+      <p class="hint">単元やチェックを直したあとは、もう一度「挿絵を取り出す」を押すと作り直せます。（作り直すと、手で直した切り取りや、消した背景は元に戻ります）</p>
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <div id="status" role="status"></div>
+    </div>
+    <div class="card save-box">
+      <h2><span class="n">3</span>保存・印刷</h2>
+      <button id="saveDir" class="chalk" disabled>保存先のフォルダを選んで保存</button>
+      <button id="saveZip" disabled hidden>ZIPファイルで保存</button>
+      <p class="hint">押すと、保存先を選ぶ画面が出ます。デスクトップ、USBメモリ、Dドライブなど、保存したいフォルダを選びます。選んだフォルダの中に <code>教科／○年／01_単元名／…</code> の形で保存されます。同じ名前のファイルがあるときは上書きしません。保存されるのは、左の一覧でチェックが入っている単元だけです。</p>
+      <button id="printBtn" disabled>印刷する…</button>
+      <label class="srcrow"><input type="checkbox" class="srcOpt" id="srcMain">印刷物の下に出典（教科書名・発行者）を入れる</label>
+      <p class="hint">印刷は、右に表示している単元から選びます。1枚だけ大きく印刷するときは、画像をクリックして「この画像を印刷」を押します。A4のふちぎりぎりまで大きく印刷します。</p>
+    </div>
+  </section>
+
+  <section class="results" aria-label="結果">
+    <div class="res-head">
+      <h2 id="resTitle">取り出した挿絵</h2>
+      <div class="summary" id="summary"></div>
+    </div>
+    <div id="resBody">
+      <div class="empty">
+        <h3>使い方</h3>
+        <ol>
+          <li>学年・教科を選び、指導書の付属データのPDFを入れます。</li>
+          <li>単元の一覧（「開始ページ 単元名」）を確かめます。分かっている教科書は自動で入ります。</li>
+          <li>「挿絵を取り出す」を押すと、単元ごとに挿絵・まとまり画像・式・数直線が並びます。</li>
+          <li>いらないものはチェックを外し、フォルダに保存するか印刷します。</li>
+        </ol>
+        <p class="hint">保存される形：<code>算数/4年/12_がい数の表し方と使い方/p126_01.png</code>、<code>…/まとまり画像/p126_まとまり01.png</code>、<code>…/式・数直線/p115_式・数直線01.png</code></p>
+      </div>
+    </div>
+  </section>
+</main>
+<dialog id="viewer"><img id="viewerImg" alt=""><p id="viewerCap" class="hint"></p><div class="btnrow" style="justify-content:flex-end"><button type="button" id="cropOne" hidden>切り取りを直す</button><button type="button" id="bgOne" hidden>背景を消す</button><button type="button" id="printOne" class="chalk" hidden>この画像を印刷（A4に大きく）</button><form method="dialog"><button>閉じる</button></form></div></dialog>
+<dialog id="cropDlg" aria-labelledby="crTitle">
+  <h2 id="crTitle" style="font-family:var(--f-display);margin:0 0 4px">切り取りを直す</h2>
+  <p class="hint" id="crInfo">黄色の枠の中が切り取られます。枠の角や辺の■をドラッグすると大きさを、枠の中をドラッグすると位置を変えられます。背景を消したあとに切り取りを直すと、背景は元に戻ります（背景は最後に消しましょう）。</p>
+  <div class="crop-wrap" id="crWrap"><canvas id="crCanvas"></canvas><div class="crop-box" id="crBox"><i data-h="nw"></i><i data-h="n"></i><i data-h="ne"></i><i data-h="e"></i><i data-h="se"></i><i data-h="s"></i><i data-h="sw"></i><i data-h="w"></i></div></div>
+  <div class="btnrow" style="margin-top:8px">
+    <button type="button" class="small" data-grow="6">まわりを少し広げる</button>
+    <button type="button" class="small" data-grow="-6">まわりを少し狭める</button>
+    <button type="button" class="small" id="crReset">はじめの範囲に戻す</button>
+  </div>
+  <div class="btnrow" style="justify-content:flex-end;margin-top:10px"><form method="dialog"><button>やめる</button></form><button type="button" id="crApply" class="primary">この範囲で切り取る</button></div>
+</dialog>
+<dialog id="bgDlg" aria-labelledby="bgTitle">
+  <h2 id="bgTitle" style="font-family:var(--f-display);margin:0 0 4px">背景を消す</h2>
+  <p class="hint" id="bgInfo"></p>
+  <div class="bg-body">
+    <div class="bg-stage" id="bgStage"><canvas id="bgCanvas"></canvas></div>
+    <div class="bg-tools">
+      <div class="btnrow"><button type="button" id="bgAuto" class="primary">自動で消す</button><button type="button" id="bgUndo">1つ戻る</button></div>
+      <fieldset id="bgModeBox"><legend>消し方</legend>
+        <label><input type="radio" name="bgMode" value="pdf">PDFの切り抜きの形で消す（きれい）</label>
+        <label><input type="radio" name="bgMode" value="pixel">色の境目を見て消す</label>
+      </fieldset>
+      <fieldset><legend>迷うときは、なぞって教える</legend>
+        <label><input type="radio" name="bgTool" value="keep" checked><span class="tool-keep">残すものをなぞる（緑）</span></label>
+        <label><input type="radio" name="bgTool" value="erase"><span class="tool-erase">消すところをなぞる（赤）</span></label>
+        <label style="margin-top:4px">ペンの太さ <select id="bgSize"><option value="0.012">細い</option><option value="0.025" selected>ふつう</option><option value="0.05">太い</option></select></label>
+        <button type="button" class="small" id="bgClear" style="align-self:flex-start;margin-top:4px">なぞった線をぜんぶ消す</button>
+      </fieldset>
+      <div id="bgTolBox"><label for="bgTol">消すはんい（色の近さ）</label><input type="range" id="bgTol" min="6" max="70" value="24"></div>
+      <fieldset><legend>見え方・仕上がり</legend>
+        <label><input type="checkbox" id="bgPaper">白い紙の上で見る</label>
+        <label><input type="radio" name="bgFill" value="clear" checked>消したところは透明（おすすめ）</label>
+        <label><input type="radio" name="bgFill" value="white">消したところを白でぬる</label>
+      </fieldset>
+      <p id="bgBusy" role="status"></p>
+    </div>
+  </div>
+  <div class="btnrow" style="justify-content:space-between;margin-top:10px">
+    <button type="button" id="bgOrig">背景を消すのをやめて、元の絵にもどす</button>
+    <div class="btnrow" style="margin-left:auto"><form method="dialog"><button>やめる</button></form><button type="button" id="bgApply" class="primary">この形で決める</button></div>
+  </div>
+</dialog>
+<dialog id="agreeDlg" aria-labelledby="agTitle" style="max-width:min(92vw,480px)">
+  <h2 id="agTitle" style="font-family:var(--f-display);margin:0 0 8px">利用条件への同意が必要です</h2>
+  <p>取り出す前に、画面の上にある「利用条件」をお読みいただき、「上記の利用条件を確認し、同意します」にチェックを入れてください。</p>
+  <div class="btnrow" style="justify-content:flex-end"><form method="dialog"><button>閉じる</button></form><button type="button" id="agGo" class="primary">利用条件を読む</button></div>
+</dialog>
+<dialog id="printDlg" aria-labelledby="pdTitle">
+  <h2 id="pdTitle" style="font-family:var(--f-display);margin:0 0 6px">印刷</h2>
+  <p class="hint" id="pdUnit"></p>
+  <div class="pd-grid">
+    <fieldset><legend>何を印刷しますか</legend>
+      <label><input type="radio" name="pdWhat" value="tab" checked><span id="pdTabLabel">いま開いている種類</span></label>
+      <label><input type="radio" name="pdWhat" value="all">この単元の挿絵・まとまり・式・数直線すべて</label>
+    </fieldset>
+    <fieldset><legend>1枚の紙に</legend>
+      <label><input type="radio" name="pdPer" value="1">1こ（大きく・黒板に貼る）</label>
+      <label><input type="radio" name="pdPer" value="2">2こ</label>
+      <label><input type="radio" name="pdPer" value="4" checked>4こ</label>
+      <label><input type="radio" name="pdPer" value="6">6こ（一覧）</label>
+    </fieldset>
+    <fieldset><legend>紙の向き（A4）</legend>
+      <label><input type="radio" name="pdOri" value="auto" checked>自動（いちばん大きく入る向き）</label>
+      <label><input type="radio" name="pdOri" value="portrait">たて</label>
+      <label><input type="radio" name="pdOri" value="landscape">よこ</label>
+      <label style="margin-top:6px"><input type="checkbox" class="srcOpt" id="pdSrc">下に出典を入れる</label>
+    </fieldset>
+  </div>
+  <p class="pd-count" id="pdCount"></p>
+  <div class="pd-preview" id="pdPreview" aria-label="1枚目の見本"></div>
+  <p class="hint">紙のふち（5mm）ぎりぎりまで大きく印刷します。「印刷する」を押すと、パソコンの印刷画面が開きます。プリンターと枚数を選び、「余白」と「倍率」は「デフォルト」のままにします。PDFにしたいときは、プリンターで「PDFに保存」を選びます。<br>出典：ふだんの授業で使う印刷物では入れなくてもかまいません。授業の外で使うとき、配布物に出典を示す必要があるときは入れてください。</p>
+  <div class="btnrow" style="justify-content:flex-end"><form method="dialog"><button>やめる</button></form><button type="button" id="pdGo" class="primary">印刷する</button></div>
+</dialog>
+<div id="printArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+"use strict";
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+const PDFJS_DATA="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/";
+const PRESETS=[{"subject":"国語","book":"上","file":"01_振り仮名付本文4上.pdf","pages":82,"units":[[5,"国語の学びを見わたそう（上）"],[14,"力を合わせてばらばらに"],[16,"春のうた"],[18,"なりきって書こう"],[20,"つづけてみよう"],[21,"白いぼうし"],[35,"図書館の達人になろう"],[38,"漢字辞典を使おう"],[42,"季節の言葉 春"],[44,"聞き取りメモのくふう"],[50,"カンジーはかせの都道府県の旅1"],[52,"漢字の広場①"],[53,"思いやりのデザイン・アップとルーズで伝える"],[65,"考えと例"],[66,"お礼の気持ちを伝えよう"],[70,"漢字の広場②"],[71,"一つの花"],[85,"つなぎ言葉のはたらきを知ろう"],[88,"短歌・俳句に親しもう（一）"],[90,"要約するとき"],[92,"新聞を作ろう"],[100,"カンジーはかせの都道府県の旅2"],[102,"季節の言葉 夏"],[104,"本のポップや帯を作ろう"],[108,"神様の階段"],[116,"忘れもの・ぼくは川"],[120,"あなたなら、どう言う"],[122,"パンフレットを読もう"],[126,"どう直したらいいかな"],[128,"いろいろな意味をもつ言葉"],[131,"ローマ字を使いこなそう"],[132,"漢字の広場③"],[134,"付録（上）"]],"map":{"mode":"spread","order":"rtl","k":-4,"firstPage":3}},{"subject":"国語","book":"下","file":"02_振り仮名付本文4下.pdf","pages":90,"units":[[5,"国語の学びを見わたそう（下）"],[13,"ごんぎつね"],[36,"漢字を正しく使おう"],[38,"季節の言葉 秋"],[40,"クラスみんなで決めるには"],[47,"未来につなぐ工芸品・工芸品のみりょくを伝えよう"],[60,"慣用句"],[62,"短歌・俳句に親しもう（二）"],[64,"漢字の広場④"],[65,"友情のかべ新聞"],[84,"もしものときにそなえよう"],[90,"季節の言葉 冬"],[92,"自分だけの詩集を作ろう"],[94,"言葉から連想を広げて"],[96,"熟語の意味"],[98,"漢字の広場⑤"],[99,"風船でうちゅうへ"],[113,"つながりに気をつけよう"],[117,"心が動いたことを言葉に"],[120,"調べて話そう、生活調査隊"],[125,"スワンレイクのほとりで"],[143,"漢字の広場⑥"],[144,"四年生をふり返って"],[146,"付録（下）"]],"map":{"mode":"spread","order":"rtl","k":-4,"firstPage":3}},{"subject":"算数","book":"上","file":"4年算数上.pdf","pages":156,"units":[[2,"私と算数"],[3,"学びのとびら"],[8,"大きい数のしくみ"],[20,"折れ線グラフと表"],[36,"わり算の筆算（1）"],[54,"角の大きさ"],[72,"小数のしくみ"],[90,"考える力をのばそう（上）"],[92,"そろばん"],[94,"わり算の筆算（2）"],[112,"倍の見方"],[118,"がい数の表し方と使い方"],[132,"算数で読みとこう（上）"],[134,"新しい算数4上プラス"]],"map":{"mode":"single","order":"-","k":-1,"firstPage":3}},{"subject":"算数","book":"下","file":"4年算数下.pdf","pages":152,"units":[[2,"計算のきまり"],[14,"垂直・平行と四角形"],[36,"分数"],[50,"変わり方"],[58,"面積のくらべ方と表し方"],[76,"小数のかけ算とわり算"],[98,"どんな計算になるのかな"],[100,"直方体と立方体"],[114,"考える力をのばそう（下）"],[116,"算数で読みとこう（下）"],[118,"4年のふくしゅう"]],"map":{"mode":"single","order":"-","k":-1,"firstPage":3}}];
+const DPI=300, Z=DPI/72;
+const $=s=>document.querySelector(s);
+const OPS=pdfjsLib.OPS, U=pdfjsLib.Util;
+
+/* ---- pdf.js worker（ローカルファイルでも動くように blob 経由） ---- */
+try{
+  const src=`importScripts("${PDFJS}pdf.worker.min.js");`;
+  pdfjsLib.GlobalWorkerOptions.workerPort=new Worker(URL.createObjectURL(new Blob([src],{type:"text/javascript"})));
+}catch(e){ pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+"pdf.worker.min.js"; }
+
+/* ---- 状態 ---- */
+const state={files:[],units:[],current:null,tab:"img"};
+
+/* ---- 小さな道具 ---- */
+const R=(x0,y0,x1,y1)=>({x0,y0,x1,y1});
+const rw=r=>r.x1-r.x0, rh=r=>r.y1-r.y0, area=r=>Math.max(0,rw(r))*Math.max(0,rh(r));
+const inter=(a,b)=>R(Math.max(a.x0,b.x0),Math.max(a.y0,b.y0),Math.min(a.x1,b.x1),Math.min(a.y1,b.y1));
+const iarea=(a,b)=>{const i=inter(a,b);return (i.x1>i.x0&&i.y1>i.y0)?area(i):0};
+const hits=(a,b)=>a.x0<b.x1&&b.x0<a.x1&&a.y0<b.y1&&b.y0<a.y1;
+const union=(a,b)=>R(Math.min(a.x0,b.x0),Math.min(a.y0,b.y0),Math.max(a.x1,b.x1),Math.max(a.y1,b.y1));
+const grow=(r,d)=>R(r.x0-d,r.y0-d,r.x1+d,r.y1+d);
+const contains=(a,b)=>a.x0<=b.x0&&a.y0<=b.y0&&a.x1>=b.x1&&a.y1>=b.y1;
+const gapXY=(a,b)=>[Math.max(0,Math.max(a.x0,b.x0)-Math.min(a.x1,b.x1)),Math.max(0,Math.max(a.y0,b.y0)-Math.min(a.y1,b.y1))];
+const near=(a,b,g)=>{const [dx,dy]=gapXY(a,b);return dx<=g&&dy<=g};
+const clampR=(r,W,H)=>R(Math.max(0,r.x0),Math.max(0,r.y0),Math.min(W,r.x1),Math.min(H,r.y1));
+const pad3=n=>String(n).padStart(3,"0"), pad2=n=>String(n).padStart(2,"0");
+const safe=s=>s.replace(/[\\/:*?"<>|]/g,"").trim();
+function tRect(m,pts){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let i=0;i<pts.length;i+=2){const p=U.applyTransform([pts[i],pts[i+1]],m);x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}return R(x0,y0,x1,y1)}
+function setStatus(t,p){$("#status").textContent=t;if(p!=null)$("#bar").style.width=(p*100).toFixed(1)+"%"}
+function unionFind(n,joinFn){const par=[...Array(n).keys()];const f=i=>{while(par[i]!==i){par[i]=par[par[i]];i=par[i]}return i};for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(joinFn(i,j))par[f(i)]=f(j);const g=new Map();for(let i=0;i<n;i++){const k=f(i);if(!g.has(k))g.set(k,[]);g.get(k).push(i)}return [...g.values()]}
+
+/* ---- ファイル読み込み ---- */
+const drop=$("#drop"), fileInput=$("#fileInput");
+drop.addEventListener("click",()=>fileInput.click());
+drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click()}});
+drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("over")});
+drop.addEventListener("dragleave",()=>drop.classList.remove("over"));
+drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("over");addFiles([...e.dataTransfer.files])});
+fileInput.addEventListener("change",()=>addFiles([...fileInput.files]));
+$("#subject").addEventListener("change",()=>{ $("#optFig").checked=$("#subject").value==="算数"; });
+let fileSeq=0;
+state.rows=[]; state.rowSource=""; state.rowsEdited=false;
+function guessSubject(s){ for(const k of ["国語","算数","社会","理科","生活","道徳"]) if(s.includes(k)) return k; if(/shakai/i.test(s)) return "社会"; if(/sansu|sansuu/i.test(s)) return "算数"; if(/kokugo/i.test(s)) return "国語"; if(/rika/i.test(s)) return "理科"; return null }
+/* ファイル名の「006-031」から、教科書の何ページ分かを読む */
+function rangeFromName(name,pages){
+  const m=name.match(/(\d{1,3})\s*[-_～~〜]\s*(\d{1,3})(?=[^\d]*\.pdf$)/i); if(!m) return null;
+  const a=+m[1], b=+m[2], n=b-a+1; if(b<a) return null;
+  if(Math.abs(n-2*pages)<=1) return {mode:"spread",first:a};
+  if(Math.abs(n-pages)<=1) return {mode:"single",first:a};
+  return null;
+}
+/* 見開きの左右どちらが先か（横書きは左、たて書きは右） */
+async function guessOrder(doc){
+  let v=0,h=0;
+  for(let p=Math.min(2,doc.numPages);p<=Math.min(4,doc.numPages);p++){const page=await doc.getPage(p);const T=await pageTexts(page,page.getViewport({scale:1}));for(const t of T){if(t.v)v+=t.t.length;else h+=t.t.length}}
+  return v>h*0.6?"rtl":"ltr";
+}
+function makeMap(mode,order,firstPdf,firstBook){ // PDFの firstPdf 枚目が教科書 firstBook ページ（見開きなら先に読むページ）
+  return mode==="spread"?{mode,order,k:firstBook-2*firstPdf}:{mode,order:"-",k:firstBook-firstPdf};
+}
+function firstBookPage(m,p=1){ return m.mode==="spread"?2*p+m.k:p+m.k }
+function coverage(f){ const m=f.map; if(!m) return null; return m.mode==="spread"?[2+m.k,2*f.pages+m.k+1]:[1+m.k,f.pages+m.k] }
+async function addFiles(list){
+  const pdfs=list.filter(f=>/\.pdf$/i.test(f.name)||f.type==="application/pdf");
+  if(!pdfs.length){setStatus("PDFファイルを選んでください。");return}
+  for(const [ix,f] of pdfs.entries()){
+    if(state.files.some(x=>x.name===f.name&&x.size===f.size)){setStatus(`「${f.name}」はもう入っています。`);continue}
+    setStatus(`PDFを読みこんでいます（${ix+1}/${pdfs.length}）「${f.name}」`,ix/pdfs.length);
+    const data=new Uint8Array(await f.arrayBuffer());
+    const doc=await pdfjsLib.getDocument({data,cMapUrl:PDFJS_DATA+"cmaps/",cMapPacked:true,standardFontDataUrl:PDFJS_DATA+"standard_fonts/",isOffscreenCanvasSupported:false}).promise;
+    const e={id:++fileSeq,name:f.name,size:f.size,doc,pages:doc.numPages,map:null,how:"",toc:null,edit:false};
+    const vp1=(await doc.getPage(Math.min(2,doc.numPages))).getViewport({scale:1}); const wide=vp1.width>vp1.height*1.1;
+    const rn=rangeFromName(f.name,doc.numPages);
+    if(rn){ const order=rn.mode==="spread"?await guessOrder(doc):"-"; e.map=makeMap(rn.mode,order,1,rn.first); e.how="ファイル名から"; }
+    else { e.map=await detectNumbering(doc); if(e.map){ if(e.map.mode==="spread"&&e.map.order==="-") e.map.order=await guessOrder(doc); e.how="ページ番号から"; } }
+    e.toc=await detectTOC(doc,!e.map||firstBookPage(e.map)<=8);
+    const pre=findPreset(e); e.preset=pre; e.volFixed=(pre&&pre.book)||volFromName(f.name);
+    if(!e.map&&pre){ e.map={...pre.map}; e.how="登録済みの教科書から"; }
+    if(!e.map){ e.map=makeMap(wide?"spread":"single",wide?await guessOrder(doc):"-",1,1); e.how="仮の値"; e.edit=true; }
+    state.files.push(e);
+    if(state.files.length===1){const s=guessSubject(f.name+e.toc.text); if(s){$("#subject").value=s;$("#optFig").checked=s==="算数"}}
+  }
+  assignVolumes(); sortFiles();
+  rebuildRows(); renderFiles();
+  setStatus(state.files.length?"単元の一覧を確かめて「挿絵を取り出す」を押してください。":"",1);
+  $("#run").disabled=!state.files.length;
+}
+/* 上巻・下巻：ファイル名や登録済みの教科書から巻を決める。分からないときは、ページが重なるPDFを別の巻にする（名前順に 上→下） */
+const VOLRANK=v=>({"":0,"上":0,"下":1}[v]??(2+(parseInt(v)||0)));
+function volFromName(n){ n=n.normalize("NFKC"); if(/下/.test(n)) return "下"; if(/上/.test(n)) return "上"; return ""; }
+function assignVolumes(){
+  const fs=[...state.files].sort((a,b)=>a.name.localeCompare(b.name,"ja",{numeric:true}));
+  const ov=(a,b)=>a&&b&&a[0]<=b[1]&&b[0]<=a[1];
+  const used=new Map(); const put=(v,c)=>{ if(!used.has(v)) used.set(v,[]); used.get(v).push(c); };
+  for(const f of fs) if(f.volFixed){ f.vol=f.volFixed; put(f.vol,coverage(f)); }
+  const anyFixed=fs.some(f=>f.volFixed);
+  for(const f of fs) if(!f.volFixed){ const c=coverage(f);
+    const cand=anyFixed?["上","下","3","4","5"]:["","下","3","4","5"];
+    f.vol=cand.find(v=>!(used.get(v)||[]).some(x=>ov(x,c)))||""; put(f.vol,c); }
+  if(state.files.some(f=>f.vol==="下")) for(const f of state.files) if(f.vol==="") f.vol="上";
+}
+const volName=v=>v===""?"":(/^\d+$/.test(v)?`${v}巻`:`${v}巻`);
+function sortFiles(){ state.files.sort((a,b)=>VOLRANK(a.vol)-VOLRANK(b.vol)||firstBookPage(a.map)-firstBookPage(b.map)||a.name.localeCompare(b.name,"ja",{numeric:true})); }
+const rowSort=(a,b)=>VOLRANK(a.vol||"")-VOLRANK(b.vol||"")||a.start-b.start;
+const rowKey=r=>(r.vol||"")+"|"+r.start;
+/* 単元の一覧：入っているPDF全部から1つの表を作る（上巻をすべて並べてから下巻） */
+async function rebuildRows(){
+  const found=new Map(); let src=[];
+  const pres=[...new Set(state.files.map(f=>f.preset).filter(Boolean))];
+  if(pres.length){ for(const p of pres){ const v=(state.files.find(f=>f.preset===p)||{}).vol??(p.book||""); for(const [st,n] of p.units) found.set(v+"|"+st,{vol:v,start:st,name:n,check:false}); } src.push("登録済みの単元表"); }
+  for(const f of state.files) if(!f.preset) for(const en of f.toc.entries){
+    const k=f.vol+"|"+en.page, old=found.get(k);
+    if(!old||(old.check&&!en.weak)||(old.name.length<en.name.length&&old.check===en.weak)) found.set(k,{vol:f.vol,start:en.page,name:en.name,check:en.weak,snip:{f:f.id,p:en.p,rect:en.rect}});
+    if(!src.includes("目次から読み取り")) src.push("目次から読み取り");
+  }
+  // 巻ごとに、入っているPDFのページの範囲にある単元だけ残す
+  let rows=[...found.values()].sort(rowSort);
+  rows=rows.filter((r,i)=>{ const covs=state.files.filter(f=>f.vol===r.vol).map(coverage).filter(Boolean); if(!covs.length) return false;
+    const nx=rows.slice(i+1).find(x=>x.vol===r.vol); const end=nx?nx.start-1:r.start+40; return covs.some(c=>r.start<=c[1]&&end>=c[0]); });
+  if(!state.rowsEdited||!state.rows.length){ state.rows=rows; }
+  else { for(const r of rows) if(!state.rows.some(x=>rowKey(x)===rowKey(r))) state.rows.push(r); state.rows.sort(rowSort); }
+  state.rowSource=src.join("・")||"見つかりませんでした";
+}
+function findPreset(e){
+  if(new URLSearchParams(location.search).has("nopreset")) return null;
+  const starts=new Set(e.toc.entries.map(x=>x.page));
+  return PRESETS.find(p=>p.pages===e.pages&&(!starts.size||p.units.filter(u=>starts.has(u[0])).length>=Math.min(3,starts.size)))||null;
+}
+function coverText(f){ const c=coverage(f); const m=f.map; if(!c) return "教科書のページが分かりません";
+  return `教科書 p.${Math.max(0,c[0])}〜${c[1]}（${m.mode==="spread"?(m.order==="rtl"?"見開き・右から":"見開き・左から"):"1ページずつ"}）`; }
+function renderFiles(){
+  const box=$("#files"); box.innerHTML="";
+  if(!state.files.length) return;
+  const list=document.createElement("div"); list.className="flist";
+  for(const e of state.files){
+    const d=document.createElement("div"); d.className="file";
+    const first=firstBookPage(e.map);
+    d.innerHTML=`<div class="fhead"><span class="fname">${esc(e.name)}</span><span class="btnrow"><button type="button" class="small" data-act="edit">${e.edit?"閉じる":"ページを直す"}</button><button type="button" class="small" data-act="remove">外す</button></span></div>
+      <div class="meta">${e.vol?`<b>${esc(volName(e.vol))}</b>・`:""}${e.pages}枚・${esc(coverText(e))}${e.how==="仮の値"?'<span class="pill warn">ページを確かめて</span>':''}</div>
+      ${e.edit?`<div class="pagefix">
+        <img alt="PDFの1枚目" data-thumb>
+        <div class="pf-body">
+          <label for="fp${e.id}">左の画像（PDFの1枚目）は、教科書の何ページですか</label>
+          <div class="pf-row"><span>p.</span><input id="fp${e.id}" type="number" min="0" value="${first}"><span>${e.map.mode==="spread"?`〜${first+1}`:""}</span></div>
+          <label for="vl${e.id}" style="margin-top:2px">上巻・下巻</label>
+          <select id="vl${e.id}"><option value="">分からない（自動）</option><option value="上"${e.volFixed==="上"?" selected":""}>上巻</option><option value="下"${e.volFixed==="下"?" selected":""}>下巻</option></select>
+          <fieldset><legend>ページの並び</legend>
+            <label><input type="radio" name="md${e.id}" value="single"${e.map.mode==="single"?" checked":""}>1枚に1ページ</label>
+            <label><input type="radio" name="md${e.id}" value="ltr"${e.map.mode==="spread"&&e.map.order!=="rtl"?" checked":""}>見開き（横書き・左のページが先）</label>
+            <label><input type="radio" name="md${e.id}" value="rtl"${e.map.mode==="spread"&&e.map.order==="rtl"?" checked":""}>見開き（たて書き・右のページが先）</label>
+          </fieldset>
+        </div></div>`:""}`;
+    list.appendChild(d);
+    d.querySelector('[data-act="remove"]').addEventListener("click",async()=>{e.doc.destroy();state.files=state.files.filter(x=>x!==e);assignVolumes();await rebuildRows();renderFiles();$("#run").disabled=!state.files.length;setStatus(`「${e.name}」を外しました。`)});
+    d.querySelector('[data-act="edit"]').addEventListener("click",()=>{e.edit=!e.edit;renderFiles()});
+    if(e.edit){
+      (async()=>{const page=await e.doc.getPage(1);const vp=page.getViewport({scale:0.35});const c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;d.querySelector("[data-thumb]").src=c.toDataURL("image/jpeg",.8)})();
+      const apply=async()=>{const v=+d.querySelector(`#fp${e.id}`).value;const md=d.querySelector(`input[name=md${e.id}]:checked`).value;
+        e.map=md==="single"?makeMap("single","-",1,v):makeMap("spread",md,1,v); e.how="手で入力"; assignVolumes(); sortFiles(); await rebuildRows(); renderFiles();};
+      d.querySelector(`#fp${e.id}`).addEventListener("change",apply);
+      d.querySelectorAll(`input[name=md${e.id}]`).forEach(r=>r.addEventListener("change",apply));
+      d.querySelector(`#vl${e.id}`).addEventListener("change",async ev=>{ e.volFixed=ev.target.value; assignVolumes(); sortFiles(); state.rowsEdited=false; await rebuildRows(); renderFiles(); });
+    }
+  }
+  box.appendChild(list);
+  // 単元の一覧（全体で1つ）
+  const need=state.rows.filter(r=>r.check).length;
+  const u=document.createElement("div"); u.className="unitsbox";
+  const tocFile=state.files.find(f=>f.toc.pages.length);
+  const vols=[...new Set(state.files.map(f=>f.vol))].sort((a,b)=>VOLRANK(a)-VOLRANK(b)); const multi=vols.length>1;
+  u.innerHTML=`<h3>単元の一覧 <span class="pill ${need?"warn":"ok"}">${state.rows.length}こ${need?`・名前の確認 ${need}`:""}</span></h3>
+    <p class="hint">${esc(state.rowSource)}。黄色の行は、目次の画像を見て単元名を入れてください。</p>
+    <div class="tablewrap"><table class="utable"><thead><tr><th>番号</th>${multi?"<th>巻</th>":""}<th>ページ</th><th>単元名</th><th></th></tr></thead><tbody>${state.rows.map((r,i)=>`<tr class="${r.check?"need":""}${i&&multi&&state.rows[i-1].vol!==r.vol?" volstart":""}"><td class="no">${pad2(i+1)}</td>${multi?`<td><select aria-label="巻" data-i="${i}" data-f="vol">${vols.map(v=>`<option value="${v}"${v===(r.vol||"")?" selected":""}>${v||"―"}</option>`).join("")}</select></td>`:""}
+      <td><input type="number" min="0" aria-label="開始ページ" data-i="${i}" data-f="start" value="${r.start}"></td>
+      <td><input type="text" aria-label="単元名" data-i="${i}" data-f="name" value="${esc(r.name)}" placeholder="目次を見て入力">${r.check&&r.snip&&r.snip.rect?`<img class="snip" data-snip="${i}" alt="目次のこの行">`:""}</td>
+      <td><button type="button" class="x" data-del="${i}" aria-label="この行を消す">×</button></td></tr>`).join("")}</tbody></table></div>
+    <div class="btnrow" style="margin-top:6px"><button type="button" class="small" data-act="add">＋ 単元を足す</button>${tocFile?'<button type="button" class="small" data-act="toc">目次のページを見る</button>':''}</div>`;
+  box.appendChild(u);
+  u.querySelectorAll("tbody input, tbody select").forEach(inp=>inp.addEventListener("change",()=>{const r=state.rows[+inp.dataset.i];state.rowsEdited=true;
+    if(inp.dataset.f==="start") r.start=+inp.value; else if(inp.dataset.f==="vol") r.vol=inp.value; else {r.name=inp.value.trim(); if(r.name) r.check=false;}
+    state.rows.sort(rowSort); renderFiles();}));
+  u.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{state.rows.splice(+b.dataset.del,1);state.rowsEdited=true;renderFiles()}));
+  u.querySelector('[data-act="add"]').addEventListener("click",()=>{const l=state.rows[state.rows.length-1];state.rows.push({vol:l?l.vol:"",start:l?l.start+1:1,name:"",check:true});state.rowsEdited=true;renderFiles()});
+  const tb=u.querySelector('[data-act="toc"]'); if(tb) tb.addEventListener("click",()=>showTOC(tocFile));
+  u.querySelectorAll("img[data-snip]").forEach(async im=>{const r=state.rows[+im.dataset.snip]; const f=state.files.find(x=>x.id===r.snip.f); if(!f) return; im.src=await tocSnip(f,r.snip);
+    im.addEventListener("click",()=>{viewerItem=null;$("#printOne").hidden=true;$("#cropOne").hidden=true;$("#viewerImg").src=im.src;$("#viewerCap").textContent=`目次の p.${r.start} の行`;$("#viewer").showModal()})});
+}
+
+const snipCache=new Map();
+async function tocSnip(e,s){
+  const key=e.id+":"+s.p; let c=snipCache.get(key);
+  if(!c){const page=await e.doc.getPage(s.p);const vp=page.getViewport({scale:3});c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;
+    await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;snipCache.set(key,c)}
+  const r=s.rect, o=document.createElement("canvas"); o.width=Math.max(1,(r.x1-r.x0)*3); o.height=Math.max(1,(r.y1-r.y0)*3);
+  o.getContext("2d").drawImage(c,r.x0*3,r.y0*3,o.width,o.height,0,0,o.width,o.height);
+  if(o.height>o.width*1.5){const t=document.createElement("canvas");t.width=o.height;t.height=o.width;const x=t.getContext("2d");x.translate(0,t.height);x.rotate(-Math.PI/2);x.drawImage(o,0,0);return t.toDataURL("image/png")}
+  return o.toDataURL("image/png");
+}
+async function showTOC(e){
+  const p=e.toc.pages[0]; const page=await e.doc.getPage(p); const vp=page.getViewport({scale:2});
+  const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height;
+  await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+  viewerItem=null;$("#printOne").hidden=true;$("#cropOne").hidden=true; $("#viewerImg").src=c.toDataURL("image/png"); $("#viewerCap").textContent=`${e.name}　目次（PDFの${e.toc.pages.join("・")}枚目）`; $("#viewer").showModal();
+}
+
+/* ---- 目次から単元を読み取る ---- */
+async function detectTOC(doc,front=true){
+  const out={entries:[],pages:[],text:""}; const found=new Map();
+  for(let p=1;p<=Math.min(8,doc.numPages);p++){
+    const page=await doc.getPage(p); const vp=page.getViewport({scale:1}); const W=vp.width,H=vp.height;
+    const T=await pageTexts(page,vp); out.text+=T.map(t=>t.t).join("");
+    const nums=T.filter(t=>!t.v&&/^\d{1,3}$/.test(t.t)&&t.size>=8&&t.r.y0<H*0.93&&t.r.y0>H*0.04);
+    const cx=t=>(t.r.x0+t.r.x1)/2, cy=t=>(t.r.y0+t.r.y1)/2;
+    const vcount=T.filter(t=>t.v).length;
+    let got=[];
+    if(vcount>T.length*0.3){ // たて書きの目次：ページ番号が横に1列に並ぶ
+      const rows=unionFind(nums.length,(a,b)=>Math.abs(nums[a].r.y0-nums[b].r.y0)<3).filter(g=>g.length>=4);
+      for(const g of rows) for(const ni of g){
+        const n=nums[ni]; const top=Math.max(0,...nums.filter(m=>Math.abs(cx(m)-cx(n))<12&&m.r.y0<n.r.y0-5).map(m=>m.r.y1+2));
+        const col=T.filter(t=>t.v&&Math.abs((t.r.x0+t.r.x1)/2-cx(n))<Math.max(8,t.size*0.7)&&t.r.y1<=n.r.y0+2&&t.r.y0>=top);
+        const mx=Math.max(0,...col.map(t=>t.size));
+        const name=col.filter(t=>t.size>=mx*0.85).sort((a,b)=>a.r.y0-b.r.y0).map(t=>t.t).join("");
+        got.push({page:+n.t,name,weak:name.length<2,p,rect:R(cx(n)-14,Math.max(top,40),cx(n)+14,n.r.y1+2)});
+      }
+    }else{ // 横書きの目次：ページ番号が縦に1列に並ぶ（右そろえ・左そろえのどちらも）
+      let cols=unionFind(nums.length,(a,b)=>Math.abs(nums[a].r.x1-nums[b].r.x1)<4||Math.abs(nums[a].r.x0-nums[b].r.x0)<3).filter(g=>g.length>=4);
+      // 単元番号の列（同じ行の右に別の数字がある列）は外す
+      cols=cols.filter(g=>g.filter(i=>nums.some(m=>m!==nums[i]&&m.r.x0>nums[i].r.x1+20&&Math.abs(cy(m)-cy(nums[i]))<nums[i].size)).length<g.length/2);
+      const colX=cols.map(g=>Math.min(...g.map(i=>nums[i].r.x0)));
+      cols.forEach((g,gi)=>{
+        const col=g.map(i=>nums[i]).sort((a,b)=>a.r.y0-b.r.y0);
+        const myX=colX[gi];
+        col.forEach((n,ci)=>{
+          const left=Math.max(0,...colX.filter((x,xi)=>xi!==gi&&x<myX-5).map(x=>x+20));
+          const prev=col[ci-1], next=col[ci+1]; const top=prev?prev.r.y1+1:n.r.y0-3*n.size; const bot=Math.min(cy(n)+n.size*1.15,next?next.r.y0-1:1e9);
+          let line=T.filter(t=>!t.v&&t!==n&&cy(t)>top&&cy(t)<bot&&!/。/.test(t.t)&&t.r.x1<=n.r.x0+1&&t.r.x0>=left&&t.size>=n.size*0.6);
+          // 2行に分かれた題名は、ページ番号の行とそのすぐ上の行だけ
+          const ys=[...new Set(line.map(t=>Math.round(cy(t))))].sort((a,b)=>b-a);
+          const near=ys.filter(y=>y>cy(n)-2.6*n.size);
+          // 文（「。」がある行）は題名に入れない
+          const sentY=new Set(T.filter(t=>/。/.test(t.t)&&t.r.x1<=n.r.x0+1&&t.r.x0>=left).map(t=>Math.round(cy(t))));
+          for(const y of [...near]) if(sentY.has(y)&&near.includes(y)) near.splice(near.indexOf(y),1);
+          line=line.filter(t=>near.includes(Math.round(cy(t))));
+          const idx=line.filter(t=>/^[\d０-９]{1,2}$/.test(t.t)).sort((a,b)=>a.r.x0-b.r.x0)[0];
+          const left2=idx?idx.r.x1:left; if(idx) line=line.filter(t=>t.r.x0>=idx.r.x1-1&&!(t!==idx&&/^[\d０-９]{1,2}$/.test(t.t)&&t.size>n.size*1.2));
+          line=line.filter(t=>t!==idx);
+          const sameLine=line.filter(t=>Math.abs(cy(t)-cy(n))<n.size*0.75);
+          const ruby=T.filter(t=>!t.v&&t.size<n.size*0.6&&t.size>n.size*0.25&&cy(t)<cy(n)-0.4*n.size&&cy(t)>cy(n)-1.8*n.size&&t.r.x0>=left2&&t.r.x1<=n.r.x0
+            &&sameLine.some(l=>!/^[\d０-９⑴-⒇()（）]+$/.test(l.t))&&t.r.x0>=Math.min(...sameLine.map(l=>l.r.x0))-2*n.size&&!line.some(l=>l.r.x0<t.r.x1-1&&l.r.x1>t.r.x0+1));
+          const parts=[...line,...ruby].sort((a,b)=>(Math.round(cy(a)/4)-Math.round(cy(b)/4))*(Math.abs(cy(a)-cy(b))>n.size*0.75?1:0)||a.r.x0-b.r.x0).map(t=>t.t.replace(/\s+/g,""));
+          const nm=parts.join(""); got.push({page:+n.t,name:nm,weak:ruby.length>0||nm.length<3,p,rect:R(Math.max(0,left2-4),Math.min(n.r.y0-n.size*2.2,...line.map(t=>t.r.y0-2)),n.r.x1+2,n.r.y1+n.size*0.6)});
+        });
+      });
+    }
+    const vals=[...new Set(got.map(g=>g.page))];
+    const range=vals.length?Math.max(...vals)-Math.min(...vals):0;
+    const cont=out.pages.length&&out.pages[out.pages.length-1]===p-1;
+    const isToc=(vals.length>=4&&range>=30&&(/もくじ|目次/.test(T.map(t=>t.t).join("").replace(/\s/g,""))||(front&&p<=3)||cont))||(cont&&vals.length>=3&&range>=15);
+    if(got.length>=3&&isToc){ out.pages.push(p); for(const g of got){ const name=g.name.replace(/[\s\u0008…・.．\d]+$/g,"").replace(/^[\s・\d]+/,"").replace(/\s+/g," ").trim(); if(!found.has(g.page)||found.get(g.page).name.length<name.length) found.set(g.page,{name,weak:g.weak||!name,p:g.p,rect:g.rect}); } }
+  }
+  out.entries=[...found].filter(([p])=>p>0&&p<400).sort((a,b)=>a[0]-b[0]).map(([page,o])=>({page,name:o.weak&&/^[ぁ-んァ-ン\d]+$/.test(o.name)&&o.name.length>6?"":o.name,weak:o.weak,p:o.p,rect:o.rect}));
+  return out;
+}
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* ---- ページ番号の自動判定 ---- */
+async function pageTexts(page,vp){
+  const tc=await page.getTextContent();
+  const out=[];
+  for(const it of tc.items){
+    const s=(it.str||"").trim(); if(!s) continue;
+    const tx=U.transform(vp.transform,it.transform);
+    const fh=Math.hypot(tx[2],tx[3])||Math.hypot(tx[0],tx[1]);
+    const st=tc.styles[it.fontName]||{};
+    let r;
+    if(st.vertical){ r=R(tx[4]-fh/2,tx[5],tx[4]+fh/2,tx[5]+Math.max(it.height,fh)); }
+    else { r=R(tx[4],tx[5]-fh*0.88,tx[4]+Math.max(it.width,fh*0.5*s.length),tx[5]+fh*0.12); }
+    out.push({r,size:fh,t:s,v:!!st.vertical});
+  }
+  return out;
+}
+async function detectNumbering(doc,prog){
+  try{const labels=await doc.getPageLabels(); if(labels){const v=new Map();labels.forEach((l,i)=>{if(/^\d+$/.test(l)){const k=+l-(i+1);v.set(k,(v.get(k)||0)+1)}});
+    for(const [k,c] of v) if(c>=labels.length*0.6) return {mode:"single",order:"-",k,firstPage:3};}}catch(e){}
+  const votes=new Map(); let first=null;
+  const n=doc.numPages, step=Math.max(1,Math.floor(n/40));
+  for(let p=1;p<=n;p+=step){
+    prog&&prog(p);
+    const page=await doc.getPage(p); const vp=page.getViewport({scale:1});
+    const W=vp.width,H=vp.height, spread=W>H*1.1;
+    const nums=(await pageTexts(page,vp)).filter(t=>/^\d{1,3}$/.test(t.t)&&t.r.y0>H*0.88&&t.size>=8);
+    if(spread){
+      const L=nums.filter(t=>t.r.x1<W*0.25).map(t=>+t.t), Rr=nums.filter(t=>t.r.x0>W*0.75).map(t=>+t.t);
+      for(const a of L)for(const b of Rr){
+        if(a===b+1){const key=`spread|rtl|${b-2*p}`;votes.set(key,(votes.get(key)||0)+1)}
+        if(b===a+1){const key=`spread|ltr|${a-2*p}`;votes.set(key,(votes.get(key)||0)+1)}
+      }
+    }else{
+      for(const t of nums){const key=`single|-|${+t.t-p}`;votes.set(key,(votes.get(key)||0)+1)}
+    }
+  }
+  let best=null,bv=0; for(const [k,v] of votes) if(v>bv){bv=v;best=k}
+  let tot=0; for(const v of votes.values()) tot+=v;
+  if(!best||bv<4||bv<tot*0.5) return null;
+  const [mode,order,k]=best.split("|");
+  return {mode,order,k:+k,firstPage:3};
+}
+/* PDFの1枚の中の、ある位置にある教科書ページ */
+function bookPages(map,p,W){ // returns {right,left} or {single}
+  if(!map) return null;
+  if(map.mode==="spread"){
+    const a=2*p+map.k, b=a+1;
+    return map.order==="ltr"?{left:a,right:b}:{right:a,left:b};
+  }
+  return {single:p+map.k};
+}
+function pageLabel(map,p,r,W){
+  const bp=bookPages(map,p,W); if(!bp) return null;
+  if(bp.single!=null) return bp.single>0?{label:"p"+pad3(bp.single),num:bp.single}:null;
+  const mid=W/2;
+  if(r.x0<mid-15&&r.x1>mid+15){const lo=Math.min(bp.left,bp.right);return {label:`p${pad3(lo)}-${pad3(lo+1)}`,num:lo}}
+  const n=(r.x0+r.x1)/2>mid?bp.right:bp.left;
+  return n>0?{label:"p"+pad3(n),num:n}:null;
+}
+
+/* ---- 1ページの中身を読む（画像の位置・線・文字） ---- */
+async function readPage(page){
+  const vp=page.getViewport({scale:1});
+  const ol=await page.getOperatorList();
+  const fn=ol.fnArray, ar=ol.argsArray;
+  let ctm=vp.transform.slice(); const stack=[]; let pend=[]; let sm=false; const smStack=[]; let clipCurve=false, clipNext=false, clipRule="nonzero"; let clips=[]; let maskDepth=0; const grpStack=[];
+  const images=[], paths=[];
+  const PAINT=new Set([OPS.stroke,OPS.closeStroke,OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]);
+  const FILL=new Set([OPS.fill,OPS.eoFill,OPS.fillStroke,OPS.eoFillStroke,OPS.closeFillStroke,OPS.closeEOFillStroke]);
+  for(let i=0;i<fn.length;i++){
+    const f=fn[i], a=ar[i];
+    if(f===OPS.save){ stack.push(ctm.slice()); smStack.push([sm,clipCurve,clips]); }
+    else if(f===OPS.restore){ ctm=stack.pop()||ctm; if(smStack.length){ [sm,clipCurve,clips]=smStack.pop(); } }
+    else if(f===OPS.setGState){ for(const [k,v] of (a[0]||[])) if(k==="SMask") sm=!!v; }
+    else if(f===OPS.transform) ctm=U.transform(ctm,a);
+    else if(f===OPS.paintFormXObjectBegin){stack.push(ctm.slice()); if(a[0]) ctm=U.transform(ctm,a[0]);}
+    else if(f===OPS.paintFormXObjectEnd) ctm=stack.pop()||ctm;
+    else if(f===OPS.beginGroup){stack.push(ctm.slice()); const isM=!!(a[0]&&a[0].smask); grpStack.push(isM); if(isM) maskDepth++; if(a[0]&&a[0].matrix) ctm=U.transform(ctm,a[0].matrix);}
+    else if(f===OPS.endGroup){ ctm=stack.pop()||ctm; if(grpStack.pop()) maskDepth--; }
+    else if(f===OPS.constructPath){
+      const ops=a[0], co=a[1]; const pts=[]; let j=0, items=0, straight=0;
+      const m=ctm, T=(x,y)=>[m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]; const segs=[]; let cx=0,cy=0;
+      for(const o of ops){
+        if(o===OPS.moveTo){pts.push(co[j],co[j+1]);segs.push(["M",...T(co[j],co[j+1])]);cx=co[j];cy=co[j+1];j+=2}
+        else if(o===OPS.lineTo){pts.push(co[j],co[j+1]);segs.push(["L",...T(co[j],co[j+1])]);cx=co[j];cy=co[j+1];j+=2;items++;straight++}
+        else if(o===OPS.curveTo){pts.push(co[j],co[j+1],co[j+2],co[j+3],co[j+4],co[j+5]);segs.push(["C",...T(co[j],co[j+1]),...T(co[j+2],co[j+3]),...T(co[j+4],co[j+5])]);cx=co[j+4];cy=co[j+5];j+=6;items++}
+        else if(o===OPS.curveTo2){pts.push(co[j],co[j+1],co[j+2],co[j+3]);segs.push(["C",...T(cx,cy),...T(co[j],co[j+1]),...T(co[j+2],co[j+3])]);cx=co[j+2];cy=co[j+3];j+=4;items++}
+        else if(o===OPS.curveTo3){pts.push(co[j],co[j+1],co[j+2],co[j+3]);segs.push(["C",...T(co[j],co[j+1]),...T(co[j+2],co[j+3]),...T(co[j+2],co[j+3])]);cx=co[j+2];cy=co[j+3];j+=4;items++}
+        else if(o===OPS.rectangle){const x=co[j],y=co[j+1],w=co[j+2],h=co[j+3];pts.push(x,y,x+w,y,x+w,y+h,x,y+h);segs.push(["M",...T(x,y)],["L",...T(x+w,y)],["L",...T(x+w,y+h)],["L",...T(x,y+h)],["Z"]);cx=x;cy=y;j+=4;items++;straight++}
+        else if(o===OPS.closePath){segs.push(["Z"])}
+      }
+      if(pts.length) pend.push({r:tRect(ctm,pts),items,straight,segs});
+    }
+    else if(PAINT.has(f)){ for(const p of pend) paths.push({...p,fill:FILL.has(f)}); pend=[]; }
+    else if(f===OPS.clip||f===OPS.eoClip){ clipNext=true; clipRule=f===OPS.eoClip?"evenodd":"nonzero"; }
+    else if(f===OPS.endPath){ if(clipNext&&pend.some(q=>q.items>q.straight)) clipCurve=true; if(clipNext&&pend.length) clips=clips.concat([{rule:clipRule,segs:pend.flatMap(q=>q.segs)}]); clipNext=false; pend=[]; }
+    else if(f===OPS.paintImageXObject){ images.push({id:a[0],w:a[1],h:a[2],r:tRect(ctm,[0,0,1,0,1,1,0,1]),masked:sm||clipCurve,isMask:maskDepth>0,ctm:ctm.slice(),clips}); }
+  }
+  const texts=await pageTexts(page,vp);
+  return {W:vp.width,H:vp.height,images,paths,texts};
+}
+function getObj(page,id){
+  const store=id.startsWith("g_")?page.commonObjs:page.objs;
+  return new Promise((res)=>{try{store.get(id,res)}catch(e){res(null)}; setTimeout(()=>res(null),5000)});
+}
+function objToCanvas(o){
+  if(!o) return null;
+  const c=document.createElement("canvas");
+  if(o.bitmap){c.width=o.bitmap.width;c.height=o.bitmap.height;c.getContext("2d").drawImage(o.bitmap,0,0);return c}
+  if(!o.data||o.kind===1) return null;
+  c.width=o.width;c.height=o.height;const ctx=c.getContext("2d");const id=ctx.createImageData(o.width,o.height);
+  if(o.kind===3) id.data.set(o.data);
+  else { const s=o.data,d=id.data; for(let i=0,j=0;i<s.length;i+=3,j+=4){d[j]=s[i];d[j+1]=s[i+1];d[j+2]=s[i+2];d[j+3]=255} }
+  ctx.putImageData(id,0,0); return c;
+}
+function isUniform(c){
+  const t=document.createElement("canvas");t.width=t.height=64;const x=t.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,64,64);x.drawImage(c,0,0,64,64);
+  const d=x.getImageData(0,0,64,64).data;let sd=0;
+  for(let ch=0;ch<3;ch++){let s=0,s2=0,n=0;for(let i=ch;i<d.length;i+=4){s+=d[i];s2+=d[i]*d[i];n++}const m=s/n;sd=Math.max(sd,Math.sqrt(Math.max(0,s2/n-m*m)))}
+  if(sd<12) return true;
+  // 白と黒だけの画像（影や切り抜きの型）も外す
+  let bw=0,n=0,sat=0;
+  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2];n++;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);sat=Math.max(sat,mx-mn);if((mx<40)||(mn>215))bw++}
+  return bw/n>0.75&&sat<40;
+}
+const toBlob=c=>new Promise(r=>c.toBlob(r,"image/png"));
+async function cropRender(page,rect){
+  const vp=page.getViewport({scale:Z});
+  const c=document.createElement("canvas");
+  c.width=Math.ceil(rw(rect)*Z); c.height=Math.ceil(rh(rect)*Z);
+  const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+  await page.render({canvasContext:ctx,viewport:vp,transform:[1,0,0,1,-rect.x0*Z,-rect.y0*Z]}).promise;
+  return c;
+}
+function thumbOf(c){const t=document.createElement("canvas");const s=Math.min(1,300/Math.max(c.width,c.height));t.width=Math.max(1,c.width*s|0);t.height=Math.max(1,c.height*s|0);const x=t.getContext("2d");x.drawImage(c,0,0,t.width,t.height);
+  // 透明なところがある絵は PNG のまま（JPEG にすると透明が黒くなる）
+  let clear=false;try{const d=x.getImageData(0,0,t.width,t.height).data;for(let i=3;i<d.length;i+=12)if(d[i]<250){clear=true;break}}catch(e){}
+  return clear?t.toDataURL("image/png"):t.toDataURL("image/jpeg",.8)}
+
+/* ---- 単元表 ---- */
+function parseUnits(){
+  const all=[]; let n=0;
+  for(const r of [...state.rows].sort(rowSort)){
+    if(!(r.start>=0)) continue; n++;
+    const name=(r.name||"").trim()||`${r.vol?r.vol+"巻":""}p${r.start}からの単元`;
+    all.push({vol:r.vol||"",start:r.start,name,folder:`${pad2(n)}_${safe(name)}`,items:[],keep:true});
+  }
+  return all;
+}
+function unitOf(f,num){ // そのPDFと同じ巻の単元から探す
+  let list=state.units.filter(x=>x.vol===(f.vol||"")); if(!list.length) list=state.units;
+  let u=null; for(const x of list) if(num>=x.start) u=x; return u }
+/* ---- まとまり画像の領域 ---- */
+function groupRegions(pg,cands){
+  const {W,H,images,paths,texts}=pg, PA=W*H;
+  const allimg=images.map(i=>clampR(i.r,W,H)).filter(r=>rw(r)>15&&rh(r)>15&&area(r)<0.5*PA);
+  const regions=[];
+  const panels=[];
+  for(const p of paths){ if(!p.fill) continue; const r=clampR(p.r,W,H), a=area(r);
+    if(a<0.03*PA||a>0.55*PA||rw(r)<80||rh(r)<40) continue;
+    const inside=allimg.filter(x=>contains(r,x)||iarea(x,r)>0.8*area(x));
+    if(inside.length>=2&&cands.some(c=>hits(r,c))) panels.push([a,r]); }
+  panels.sort((a,b)=>a[0]-b[0]);
+  for(const [a,r] of panels){ if(regions.some(q=>contains(r,q)||contains(q,r)||iarea(r,q)>0.5*a)) continue; regions.push(r) }
+  const rest=cands.filter(c=>!regions.some(q=>contains(q,c)||iarea(q,c)>0.5*area(c)));
+  for(const g of unionFind(rest.length,(i,j)=>near(rest[i],rest[j],18))){
+    if(g.length<2) continue;
+    let u=g.map(i=>rest[i]).reduce(union);
+    for(let k=0;k<2;k++) for(const t of texts) if(rw(t.r)<130&&rh(t.r)<40&&hits(t.r,grow(u,12))) u=union(u,t.r);
+    if(area(u)>0.6*PA) continue; regions.push(u);
+  }
+  const metrics=u=>{const a=Math.max(area(u),1);const cov=allimg.filter(x=>hits(x,u)).reduce((s,x)=>s+iarea(x,u),0)/a;
+    let big=0,small=0;for(const t of texts){if(!contains(u,t.r))continue;if(t.size>=10)big+=t.t.length;else if(t.size>=6)small+=t.t.length}return {cov,big,small}};
+  const ok=u=>{if(rh(u)<50||rw(u)<50)return false;const m=metrics(u);return m.cov>=0.3&&m.big<=30&&m.small<=150};
+  const final=[];
+  for(let u of regions){
+    u=clampR(grow(u,4),W,H);
+    if(ok(u)){final.push(u);continue}
+    const ins=allimg.filter(x=>iarea(x,u)>0.8*area(x)); if(ins.length<2) continue;
+    let t=ins.reduce(union);
+    for(let k=0;k<2;k++) for(const s of texts) if(s.size<10&&rw(s.r)<130&&hits(s.r,grow(t,10))) t=union(t,s.r);
+    t=clampR(grow(t,4),W,H); if(ok(t)) final.push(t);
+  }
+  return final;
+}
+/* ---- 図（線で描かれた図）の領域 ---- */
+function figureRegions(pg){
+  const {W,H,images,paths,texts}=pg, PA=W*H;
+  const imgs=images.map(i=>clampR(i.r,W,H));
+  const drs=[];
+  for(const p of paths){
+    const r=grow(p.r,0.5); if(!hits(r,R(0,0,W,H))) continue; const a=area(r);
+    if(rh(r)>11&&rw(r)>28){ const inside=texts.filter(t=>contains(r,t.r)).reduce((s,t)=>s+t.t.length,0); if(inside>=4) continue; }
+    if(a>0.06*PA) continue; if(rw(r)>0.85*W||rh(r)>0.85*H) continue; if(r.y1<40||r.y0>H-30) continue;
+    if(imgs.some(x=>hits(x,r)&&iarea(r,x)>0.8*Math.max(a,1))) continue;
+    drs.push({r,p});
+  }
+  const groups=unionFind(drs.length,(i,j)=>near(drs[i].r,drs[j].r,7));
+  const cores=groups.map(g=>g.map(i=>drs[i].r).reduce(union));
+  const dist=(a,b)=>{const [dx,dy]=gapXY(a,b);return dx+dy};
+  const owner=texts.map(t=>{let bi=-1,bd=1e9;cores.forEach((c,k)=>{const d=dist(t.r,c);if(d<bd){bd=d;bi=k}});return bi});
+  let cands=[];
+  groups.forEach((g,gk)=>{
+    const items=g.reduce((s,i)=>s+drs[i].p.items,0), straight=g.reduce((s,i)=>s+drs[i].p.straight,0);
+    let u=cores[gk]; if(items<4||rw(u)<50||rh(u)<18) return;
+    const core=u;
+    texts.forEach((t,ti)=>{ if(owner[ti]===gk&&t.t.length<=8&&t.size<16&&hits(t.r,grow(core,9))) u=union(u,t.r) });
+    const ch=texts.filter(t=>contains(u,t.r)||iarea(t.r,u)>0.6*area(t.r)).reduce((s,t)=>s+t.t.length,0);
+    const imgcov=imgs.filter(x=>hits(x,u)).reduce((s,x)=>s+iarea(x,u),0)/Math.max(area(u),1);
+    const bigch=texts.filter(t=>t.size>=12&&contains(u,t.r)).reduce((s,t)=>s+t.t.length,0);
+    const inl=texts.filter(t=>iarea(t.r,u)>0.3*Math.max(area(t.r),0.1)).map(t=>t.t);
+    const joined=inl.join("");
+    const kw=["答え","練習","ページ","まとめ","式","れんしゅう","こた"].some(k=>joined.includes(k));
+    const longline=inl.some(t=>t.length>14);
+    const cut=texts.some(t=>t.t.length>=7&&hits(t.r,u)&&iarea(t.r,u)<0.6*area(t.r));
+    const hira=texts.filter(t=>t.size>=8&&contains(u,t.r)).reduce((s,t)=>s+(t.t.match(/[ぁ-ん]/g)||[]).length,0);
+    const nearT=texts.filter(t=>iarea(t.r,u)>0.5*area(t.r)).map(t=>t.t).join("");
+    const kw2=["練","れんしゅう","ほじゅう","答","こた"].some(k=>nearT.includes(k));
+    if(rh(u)<26&&hira>=1&&items<20) return;   // 見出しの帯
+    if(rh(u)<60&&texts.filter(t=>contains(u,t.r)&&t.size>=14).reduce((s2,t)=>s2+(t.t.match(/[ぁ-んァ-ヶ]/g)||[]).length,0)>=5) return;   // 大きな文字の見出し
+    const ok=!kw2&&!cut&&hira<=10&&(bigch<=6||items>=20)&&ch<=60&&straight>=3&&!kw&&!longline&&u.y1>70&&imgcov<0.1&&!(ch===0&&items<=8)&&!(items<10&&ch>=4)&&area(u)<0.35*PA;
+    if(ok) cands.push(u);
+  });
+  cands=cands.filter(c=>!cands.some(o=>o!==c&&contains(o,c)));
+  cands.sort((a,b)=>(Math.round(a.y0/20)-Math.round(b.y0/20))||(a.x0-b.x0));
+  return cands.map(u=>clampR(grow(u,3),W,H));
+}
+
+/* ---- 式（大きな文字の式）を探す ---- */
+function formulaRegions(pg){
+  const {W,H,images,paths,texts}=pg, PA=W*H;
+  const hz=texts.filter(t=>!t.v&&t.size>=7); if(!hz.length) return [];
+  const sz=[]; for(const t of hz) for(let i=0;i<Math.min(t.t.length,40);i++) sz.push(t.size); sz.sort((a,b)=>a-b);
+  const body=sz[sz.length>>1], big=Math.max(12.5,body*1.2);
+  const OPR=/[=＝+＋\-−－×÷*\/()（）□◯○]/g, DIG=/[0-9０-９]/g, KAN=/[ぁ-んァ-ヶ一-龠々]/g;
+  const kindOf=t=>{ if(t.size<big) return 0; const s=t.t.replace(/\s/g,""); if(!s) return 0;
+    const o=(s.match(OPR)||[]).length, d=(s.match(DIG)||[]).length, k=(s.match(KAN)||[]).length;
+    if(k>Math.max(1,s.length*0.25)) return 0;
+    if(o>=1&&d+o>=2) return 2;              // 式のかけら
+    if((d>=1||o>=1)&&d+o>=s.length*0.8) return 1;   // 数や記号だけ（式の続き）
+    return 0; };
+  const cand=[]; for(const t of hz){ const k=kindOf(t); if(k) cand.push({t,k}); }
+  if(!cand.length) return [];
+  const groups=unionFind(cand.length,(i,j)=>{const a=cand[i].t,b=cand[j].t,h=Math.max(a.size,b.size);const [dx,dy]=gapXY(a.r,b.r);
+    const sameLine=Math.min(a.r.y1,b.r.y1)-Math.max(a.r.y0,b.r.y0)>0.5*Math.min(rh(a.r),rh(b.r));
+    return sameLine?dx<=3.2*h:(dx<=1.6*h&&dy<=0.9*h)});
+  const out=[];
+  for(const g of groups){
+    const str=g.map(i=>cand[i].t.t).join(""), h=Math.max(...g.map(i=>cand[i].t.size));
+    const D=(str.match(DIG)||[]).length, O=(str.match(OPR)||[]).length;
+    const rowsY=[]; for(const i of g){ const y=(cand[i].t.r.y0+cand[i].t.r.y1)/2; if(!rowsY.some(v=>Math.abs(v-y)<0.5*h)) rowsY.push(y); }
+    // 式（=がある・記号が2つ以上・数と記号）か、筆算や位取りの表（数字が2行以上）
+    const ok=/[=＝]/.test(str)||O>=2||(O>=1&&D>=2)||(rowsY.length>=2&&D>=3);
+    if(!ok) continue;
+    let u=g.map(i=>cand[i].t.r).reduce(union); if(rw(u)<2*h) continue;
+    for(let pass=0;pass<4;pass++){  // 式についている箱・かっこ・線・❶❷などもいっしょに
+      const zone=grow(u,0.9*h);
+      for(const p of paths){ const r=p.r; if(rw(r)>rw(u)+4*h||rh(r)>3.5*h||area(r)>0.03*PA) continue; if(!hits(r,zone)) continue; if(area(r)>4&&iarea(r,zone)<0.25*area(r)) continue; u=union(u,r); }
+      for(const t of texts){ const s2=t.t.replace(/\s/g,""); if(!s2||s2.length>4||/[ぁ-んァ-ヶ一-龠]/.test(s2)) continue; if(hits(t.r,zone)) u=union(u,t.r); }
+    }
+    if(images.some(im=>contains(clampR(im.r,W,H),u))) continue;
+    if(area(u)>0.25*PA) continue;
+    out.push(clampR(R(u.x0-Math.max(6,0.5*h),u.y0-Math.max(6,0.35*h),u.x1+Math.max(8,0.8*h),u.y1+Math.max(6,0.35*h)),W,H));
+  }
+  return out;
+}
+/* 筆算：数字が縦に3行以上そろい、横線があるもの（文字の大きさに関係なく） */
+function stackRegions(pg){
+  const {W,H,paths,texts,images}=pg, PA=W*H;
+  const num=texts.filter(t=>!t.v&&t.size>=8&&/^[0-9０-９\s+＋\-−－×÷*\/)）(（.．=＝<>＜＞]+$/.test(t.t)&&/[0-9０-９]/.test(t.t));
+  if(num.length<3) return [];
+  const groups=unionFind(num.length,(i,j)=>{const a=num[i],b=num[j],h=Math.max(a.size,b.size);const [dx,dy]=gapXY(a.r,b.r);
+    const sameLine=Math.min(a.r.y1,b.r.y1)-Math.max(a.r.y0,b.r.y0)>0.5*Math.min(rh(a.r),rh(b.r));
+    return sameLine?dx<=1.6*h:(dy<=2.0*h&&(dx===0||Math.abs(a.r.x1-b.r.x1)<=1.5*h))});
+  const out=[];
+  for(const g of groups){
+    const ts=g.map(i=>num[i]), h=Math.max(...ts.map(t=>t.size));
+    const rows=[]; for(const t of ts){ const y=(t.r.y0+t.r.y1)/2; if(!rows.some(v=>Math.abs(v-y)<0.5*h)) rows.push(y); }
+    const D=ts.reduce((s,t)=>s+(t.t.match(/[0-9０-９]/g)||[]).length,0);
+    let u=ts.map(t=>t.r).reduce(union);
+    const hasLine=paths.some(p=>rh(p.r)<2.5&&rw(p.r)>=0.5*rw(u)&&hits(p.r,grow(u,h)));
+    // 筆算（3行以上＋横線）か、位取りの表（2行以上で数字が8こ以上）
+    // 表は、1行に3こ以上の数字がならぶ行が2行以上あるもの（練習問題の一覧などは外す）
+    const perRow=rows.map(y=>ts.filter(t=>Math.abs((t.r.y0+t.r.y1)/2-y)<0.5*h).length);
+    const table=rows.length>=2&&D>=8&&perRow.filter(n=>n>=3).length>=2;
+    if(!((rows.length>=3&&D>=5&&hasLine)||table)) continue;
+    for(let pass=0;pass<3;pass++){ const zone=grow(u,0.6*h);
+      for(const p of paths){ const r=p.r; if(rw(r)>rw(u)+3*h||rh(r)>3*h||area(r)>0.03*PA) continue; if(!hits(r,zone)) continue; if(area(r)>4&&iarea(r,zone)<0.25*area(r)) continue; u=union(u,r); }
+      for(const t of texts){ const s2=t.t.replace(/\s/g,""); if(!s2||s2.length>4||/[ぁ-んァ-ヶ一-龠]/.test(s2)) continue; if(hits(t.r,zone)) u=union(u,t.r); } }
+    if(area(u)>0.25*PA) continue;   // 色の背景（画像）の上の表も取る
+    out.push(clampR(R(u.x0-Math.max(6,0.5*h),u.y0-Math.max(6,0.35*h),u.x1+Math.max(8,0.8*h),u.y1+Math.max(6,0.35*h)),W,H));
+  }
+  return out;
+}
+/* 線の図と大きな式・筆算を合わせる（近いものは、数直線と式を1枚に） */
+function mathRegions(pg){
+  const all=[...figureRegions(pg),...formulaRegions(pg),...stackRegions(pg)];
+  for(let changed=true;changed;){ changed=false;
+    outer: for(let i=0;i<all.length;i++) for(let j=i+1;j<all.length;j++) if(near(all[i],all[j],8)){ all[i]=union(all[i],all[j]); all.splice(j,1); changed=true; break outer; } }
+  all.sort((a,b)=>(Math.round(a.y0/20)-Math.round(b.y0/20))||(a.x0-b.x0));
+  return all;
+}
+
+/* ---- 切り取りを直す ---- */
+const crop={it:null,page:null,s:1,r:null,W:0,H:0};
+async function openCrop(it){
+  if(!it.src) return;
+  if($("#viewer").open) $("#viewer").close();
+  const page=await it.src.f.doc.getPage(it.src.p); const vp1=page.getViewport({scale:1});
+  const s=Math.min(2.2,Math.max(0.6,1000/vp1.width)); const vp=page.getViewport({scale:s});
+  const c=$("#crCanvas"); c.width=vp.width; c.height=vp.height;
+  await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+  Object.assign(crop,{it,page,s,r:{...it.src.r},W:vp1.width,H:vp1.height});
+  drawCrop(); $("#cropDlg").showModal();
+  const b=$("#crBox"); $("#crWrap").scrollTo({left:Math.max(0,crop.r.x0*s-100),top:Math.max(0,crop.r.y0*s-100)});
+}
+function drawCrop(){const b=$("#crBox"),s=crop.s,r=crop.r;b.style.left=r.x0*s+"px";b.style.top=r.y0*s+"px";b.style.width=(r.x1-r.x0)*s+"px";b.style.height=(r.y1-r.y0)*s+"px";}
+(function(){
+  const b=$("#crBox"); let drag=null;
+  b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);drag={h:e.target.dataset.h||"move",x:e.clientX,y:e.clientY,r:{...crop.r}};});
+  b.addEventListener("pointermove",e=>{if(!drag)return;const dx=(e.clientX-drag.x)/crop.s, dy=(e.clientY-drag.y)/crop.s; const o=drag.r, r={...o}, h=drag.h;
+    if(h==="move"){const w=o.x1-o.x0,hh=o.y1-o.y0;r.x0=Math.min(Math.max(0,o.x0+dx),crop.W-w);r.y0=Math.min(Math.max(0,o.y0+dy),crop.H-hh);r.x1=r.x0+w;r.y1=r.y0+hh;}
+    else{ if(h.includes("w")) r.x0=Math.min(o.x1-8,Math.max(0,o.x0+dx)); if(h.includes("e")) r.x1=Math.max(o.x0+8,Math.min(crop.W,o.x1+dx));
+      if(h.includes("n")) r.y0=Math.min(o.y1-8,Math.max(0,o.y0+dy)); if(h.includes("s")) r.y1=Math.max(o.y0+8,Math.min(crop.H,o.y1+dy)); }
+    crop.r=r; drawCrop();});
+  const end=()=>{drag=null}; b.addEventListener("pointerup",end); b.addEventListener("pointercancel",end);
+})();
+document.querySelectorAll("#cropDlg [data-grow]").forEach(btn=>btn.addEventListener("click",()=>{const d=+btn.dataset.grow,r=crop.r;
+  const n={x0:Math.max(0,r.x0-d),y0:Math.max(0,r.y0-d),x1:Math.min(crop.W,r.x1+d),y1:Math.min(crop.H,r.y1+d)}; if(n.x1-n.x0>8&&n.y1-n.y0>8){crop.r=n;drawCrop();}}));
+$("#cropOne").addEventListener("click",()=>{ if(viewerItem) openCrop(viewerItem); });
+$("#crReset").addEventListener("click",()=>{crop.r={...crop.it.orig};drawCrop();});
+$("#crApply").addEventListener("click",async()=>{
+  const it=crop.it; $("#crApply").disabled=true; setStatus("切り取り直しています…");
+  const c=await cropRender(crop.page,crop.r); it.canvas=c; it.thumb=thumbOf(c); it.w=c.width; it.h=c.height; it.src.r={...crop.r}; it.edited=true; it.preBg=null; it.bgState=null;
+  $("#crApply").disabled=false; $("#cropDlg").close(); renderResults(); setStatus("切り取りを直しました。保存すると、直した画像が保存されます。");
+});
+/* ---- 背景を消す ---- */
+const bg={it:null,base:null,cut:null,src:null,mode:"pixel",strokes:[],out:null,disp:1,busy:false};
+const toolNow=()=>document.querySelector("input[name=bgTool]:checked").value;
+const modeNow=()=>(document.querySelector("input[name=bgMode]:checked")||{}).value||"pixel";
+function hasClear(c){const t=document.createElement("canvas");t.width=t.height=64;const x=t.getContext("2d");x.drawImage(c,0,0,64,64);const d=x.getImageData(0,0,64,64).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i]<200)n++;return n>64*64*0.02}
+// PDFの中の切り抜きの形（クリップ）を使って、絵だけをぬき出す（取り出しのときに作っておく）
+function makeCut(ic,im,r,w,h){
+  if(!ic||!im.clips||!im.clips.length) return null;
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  const sx=w/rw(r), sy=h/rh(r), x=c.getContext("2d");
+  x.setTransform(sx,0,0,sy,-r.x0*sx,-r.y0*sy);
+  for(const cl of im.clips){ const p=new Path2D();
+    for(const g of cl.segs){ if(g[0]==="M")p.moveTo(g[1],g[2]); else if(g[0]==="L")p.lineTo(g[1],g[2]); else if(g[0]==="C")p.bezierCurveTo(g[1],g[2],g[3],g[4],g[5],g[6]); else p.closePath(); }
+    x.clip(p,cl.rule); }
+  const m=im.ctm; x.transform(m[0],m[1],m[2],m[3],m[4],m[5]); x.scale(1/ic.width,-1/ic.height); x.imageSmoothingQuality="high";
+  x.drawImage(ic,0,-ic.height,ic.width,ic.height);
+  return hasClear(c)?c:null;
+}
+async function pdfCutout(it,like){
+  const s=it.src; if(!s||!s.cut) return null;
+  const r=s.r, R0=s.cutR, c=document.createElement("canvas"); c.width=like.width; c.height=like.height;
+  const sx=c.width/rw(r), sy=c.height/rh(r);
+  c.getContext("2d").drawImage(s.cut,(R0.x0-r.x0)*sx,(R0.y0-r.y0)*sy,rw(R0)*sx,rh(R0)*sy);
+  return c;
+}
+function rasterStrokes(kind,W,H,k){
+  const t=document.createElement("canvas");t.width=W;t.height=H;const x=t.getContext("2d");x.lineCap=x.lineJoin="round";x.strokeStyle=x.fillStyle="#000";
+  for(const s of bg.strokes){ if(s.tool!==kind) continue; x.lineWidth=Math.max(1,s.r*2*k); x.beginPath(); s.pts.forEach((p,i)=>i?x.lineTo(p[0]*k,p[1]*k):x.moveTo(p[0]*k,p[1]*k)); if(s.pts.length===1){x.arc(s.pts[0][0]*k,s.pts[0][1]*k,Math.max(1,s.r*k),0,7);x.fill()} else x.stroke(); }
+  const d=x.getImageData(0,0,W,H).data, m=new Uint8Array(W*H); for(let i=0;i<m.length;i++) m[i]=d[i*4+3]>60?1:0; return m;
+}
+function minMax(src,W,H,r,isMax){ // 正方形のふくらませ／けずり（縦横に分けて計算）
+  const a=new Uint8Array(W*H), b=new Uint8Array(W*H);
+  for(let y=0;y<H;y++){const o=y*W;let cnt=0;for(let x=-r;x<W+r;x++){ if(x+r<W&&x+r>=0) cnt+=src[o+x+r]; if(x-r-1>=0&&x-r-1<W) cnt-=src[o+x-r-1]; if(x>=0&&x<W){const n=Math.min(W-1,x+r)-Math.max(0,x-r)+1; a[o+x]=isMax?(cnt>0?1:0):(cnt===n?1:0);} }}
+  for(let x=0;x<W;x++){let cnt=0;for(let y=-r;y<H+r;y++){ if(y+r<H&&y+r>=0) cnt+=a[(y+r)*W+x]; if(y-r-1>=0&&y-r-1<H) cnt-=a[(y-r-1)*W+x]; if(y>=0&&y<H){const n=Math.min(H-1,y+r)-Math.max(0,y-r)+1; b[y*W+x]=isMax?(cnt>0?1:0):(cnt===n?1:0);} }}
+  return b;
+}
+function bgCompute(){
+  const B=bg.src, W0=B.width, H0=B.height, k=Math.min(1,Math.sqrt(1.2e6/(W0*H0)));
+  const W=Math.max(1,Math.round(W0*k)), H=Math.max(1,Math.round(H0*k)), N=W*H;
+  const t=document.createElement("canvas");t.width=W;t.height=H;const tx=t.getContext("2d");tx.drawImage(B,0,0,W,H);
+  const d=tx.getImageData(0,0,W,H).data;
+  const a0=new Uint8Array(N); for(let i=0;i<N;i++) a0[i]=d[i*4+3]>=128?1:0;
+  const km=rasterStrokes("keep",W,H,k), em=rasterStrokes("erase",W,H,k);
+  let hasKeep=false; for(let i=0;i<N;i++) if(km[i]){hasKeep=true;break}
+  const isBg=new Uint8Array(N); for(let i=0;i<N;i++) if(!a0[i]) isBg[i]=1;
+  const pixel=bg.mode==="pixel";
+  if(pixel){ // 外側や赤でなぞったところから、似た色をたどって広げる
+    const tol=+$("#bgTol").value, T=tol*tol*3, T2=T*7;
+    if(!hasKeep){
+      // 外側と赤でなぞったところから、似た色をたどって背景を広げる
+      const q=new Int32Array(N), seed=new Int32Array(N).fill(-1), cap=new Float64Array(N); let qh=0,qt=0;
+      const d2=(i,j)=>{const a=i*4,b=j*4,r=d[a]-d[b],g=d[a+1]-d[b+1],u=d[a+2]-d[b+2];return r*r+g*g+u*u};
+      const add=(i,c)=>{ if(seed[i]>=0||!a0[i]) return; isBg[i]=1; seed[i]=i; cap[i]=c; q[qt++]=i; };
+      for(let i=0;i<N;i++) if(em[i]) add(i,T*3);
+      for(let x=0;x<W;x++){add(x,T2);add((H-1)*W+x,T2)} for(let y=0;y<H;y++){add(y*W,T2);add(y*W+W-1,T2)}
+      for(let i=0;i<N;i++){ if(a0[i]&&seed[i]<0){const x=i%W; if((x>0&&!a0[i-1])||(x<W-1&&!a0[i+1])||(i>=W&&!a0[i-W])||(i<N-W&&!a0[i+W])) add(i,T2);} }
+      const go=(p,nb)=>{ if(seed[nb]>=0||!a0[nb]) return; const s=seed[p]; if(d2(p,nb)<T&&d2(s,nb)<cap[p]){ isBg[nb]=1; seed[nb]=s; cap[nb]=cap[p]; q[qt++]=nb; } };
+      while(qh<qt){ const p=q[qh++], x=p%W; if(x>0)go(p,p-1); if(x<W-1)go(p,p+1); if(p>=W)go(p,p-W); if(p<N-W)go(p,p+W); }
+    } else {
+      // 緑でなぞった色（残すもの）と、まわりの色・赤でなぞった色（背景）を覚え、どちらに近いかで分ける
+      const band=Math.max(2,Math.round(Math.min(W,H)*0.03));
+      const fgS=[], bgS=[]; const stepF=Math.max(1,Math.floor(N/40000));
+      for(let i=0;i<N;i+=1){ if(!a0[i]) continue; const x=i%W, y=(i/W)|0;
+        if(km[i]){ if(i%stepF===0) fgS.push(i); continue; }
+        if(em[i]||x<band||y<band||x>=W-band||y>=H-band){ if(i%stepF===0) bgS.push(i); } }
+      const centers=(idx,k)=>{ const pick=[]; const st=Math.max(1,Math.floor(idx.length/3000)); for(let j=0;j<idx.length;j+=st) pick.push(idx[j]); if(!pick.length) return [];
+        let c=[]; for(let j=0;j<k;j++){ const p=pick[Math.floor((j+0.5)*pick.length/k)]*4; c.push([d[p],d[p+1],d[p+2]]); }
+        for(let it=0;it<8;it++){ const sum=c.map(()=>[0,0,0,0]); for(const p0 of pick){ const p=p0*4; let bi=0,bd=1e12; c.forEach((cc,j)=>{const a=d[p]-cc[0],b=d[p+1]-cc[1],e=d[p+2]-cc[2],dd=a*a+b*b+e*e; if(dd<bd){bd=dd;bi=j}}); const s2=sum[bi]; s2[0]+=d[p];s2[1]+=d[p+1];s2[2]+=d[p+2];s2[3]++; }
+          c=c.map((cc,j)=>sum[j][3]?[sum[j][0]/sum[j][3],sum[j][1]/sum[j][3],sum[j][2]/sum[j][3]]:cc); }
+        return c; };
+      const cf=centers(fgS,5), cb=centers(bgS,6);
+      const near=(p,cs)=>{let bd=1e12;for(const cc of cs){const a=d[p]-cc[0],b=d[p+1]-cc[1],e=d[p+2]-cc[2],dd=a*a+b*b+e*e;if(dd<bd)bd=dd}return bd};
+      if(cf.length&&cb.length) for(let i=0;i<N;i++){ if(!a0[i]||km[i]) continue; const p=i*4; if(near(p,cb)<near(p,cf)) isBg[i]=1; }
+    }
+  }
+  const fg=new Uint8Array(N); for(let i=0;i<N;i++){ fg[i]=(a0[i]&&!isBg[i])||(km[i]&&a0[i])?1:0; if(em[i]) fg[i]=0; }
+  let fin=fg;
+  if(pixel||hasKeep){ // 細い線（地図の境目など）を切りはなし、主役のかたまりだけ残す
+    const rad=pixel?Math.max(1,Math.round(Math.min(W,H)/200)):1;
+    const op=minMax(minMax(fg,W,H,rad,false),W,H,rad,true);
+    const lab=new Int32Array(N).fill(-1), sizes=[], q=new Int32Array(N);
+    for(let i=0;i<N;i++){ if(!op[i]||lab[i]>=0) continue; const id=sizes.length; let qh=0,qt=0; q[qt++]=i; lab[i]=id; let n=0;
+      while(qh<qt){const p=q[qh++];n++;const x=p%W; const nb=[x>0?p-1:-1,x<W-1?p+1:-1,p>=W?p-W:-1,p<N-W?p+W:-1]; for(const v of nb){ if(v>=0&&op[v]&&lab[v]<0){lab[v]=id;q[qt++]=v} }}
+      sizes.push(n); }
+    const keepId=new Uint8Array(sizes.length);
+    if(hasKeep){ for(let i=0;i<N;i++) if(km[i]&&lab[i]>=0) keepId[lab[i]]=1; }
+    else { const mx=Math.max(0,...sizes); sizes.forEach((n,id)=>{ if(n>=Math.max(mx*0.12,N*0.003)) keepId[id]=1; }); }
+    const sel=new Uint8Array(N); for(let i=0;i<N;i++) if(lab[i]>=0&&keepId[lab[i]]) sel[i]=1;
+    const back=minMax(sel,W,H,rad+1,true);
+    fin=new Uint8Array(N); for(let i=0;i<N;i++) fin[i]=(fg[i]&&back[i])||(km[i]&&a0[i])?1:0;
+    if(hasKeep){ // かたまりの中に開いた小さな穴（外とつながっていない所）はうめる
+      const out=new Uint8Array(N), q2=new Int32Array(N); let h2=0,t2=0;
+      const ad=i=>{ if(out[i]||fin[i]) return; out[i]=1; q2[t2++]=i; };
+      for(let x=0;x<W;x++){ad(x);ad((H-1)*W+x)} for(let y=0;y<H;y++){ad(y*W);ad(y*W+W-1)}
+      while(h2<t2){ const p=q2[h2++], x=p%W; if(x>0)ad(p-1); if(x<W-1)ad(p+1); if(p>=W)ad(p-W); if(p<N-W)ad(p+W); }
+      for(let i=0;i<N;i++) if(!out[i]&&!em[i]&&a0[i]) fin[i]=1; }
+  }
+  const mc=document.createElement("canvas"); mc.width=W; mc.height=H; const mx=mc.getContext("2d"); const md=mx.createImageData(W,H);
+  for(let i=0;i<N;i++){ md.data[i*4+3]=fin[i]?255:0; } mx.putImageData(md,0,0);
+  const out=document.createElement("canvas"); out.width=W0; out.height=H0; const ox=out.getContext("2d");
+  ox.drawImage(B,0,0); ox.globalCompositeOperation="destination-in"; ox.imageSmoothingEnabled=true; ox.drawImage(mc,0,0,W0,H0); ox.globalCompositeOperation="source-over";
+  bg.out=out;
+}
+function bgDraw(){
+  const c=$("#bgCanvas"), B=bg.src, s=bg.disp, x=c.getContext("2d");
+  c.width=Math.round(B.width*s); c.height=Math.round(B.height*s);
+  x.clearRect(0,0,c.width,c.height);
+  x.globalAlpha=0.16; x.drawImage(bg.base,0,0,c.width,c.height); x.globalAlpha=1;  // 消したところをうすく見せる
+  if(bg.out) x.drawImage(bg.out,0,0,c.width,c.height);
+  x.lineCap=x.lineJoin="round";
+  for(const st of bg.strokes){ x.strokeStyle=x.fillStyle=st.tool==="keep"?"rgba(27,160,70,.55)":"rgba(215,40,30,.55)"; x.lineWidth=Math.max(2,st.r*2*s);
+    x.beginPath(); st.pts.forEach((p,i)=>i?x.lineTo(p[0]*s,p[1]*s):x.moveTo(p[0]*s,p[1]*s)); if(st.pts.length===1){x.arc(st.pts[0][0]*s,st.pts[0][1]*s,Math.max(2,st.r*s),0,7);x.fill()} else x.stroke(); }
+}
+function bgRun(){ $("#bgBusy").textContent="計算しています…"; setTimeout(()=>{ try{bgCompute()}catch(e){console.error(e)} bgDraw(); $("#bgBusy").textContent=""; },20); }
+function bgSetMode(m){
+  bg.mode=(m==="pdf"&&bg.cut)?"pdf":"pixel"; bg.src=bg.mode==="pdf"?bg.cut:bg.base;
+  const r=document.querySelector(`input[name=bgMode][value="${bg.mode}"]`); if(r) r.checked=true;
+  $("#bgTolBox").hidden=bg.mode!=="pixel";
+  $("#bgInfo").textContent=bg.mode==="pdf"
+    ?"PDFの中にある切り抜きの形を使って、背景を消しました。うすく見えているところが消えた部分です。残したいもの・消したいものがあれば、右のペンでなぞってください。"
+    :"色の境目を見て、外側の背景を自動で消しました。うすく見えているところが消えた部分です。消えすぎたら「残すもの（緑）」、残りすぎたら「消すところ（赤）」でなぞります。主役が分からないときは、残したいものを緑で1回なぞると、それ以外が消えます。";
+}
+async function openBg(it){
+  if($("#viewer").open) $("#viewer").close();
+  bg.it=it; bg.base=it.preBg||it.canvas; bg.out=null;
+  bg.strokes=it.bgState?JSON.parse(JSON.stringify(it.bgState.strokes)):[];
+  $("#bgBusy").textContent="準備しています…";
+  bg.cut=await pdfCutout(it,bg.base);
+  $("#bgModeBox").hidden=!bg.cut;
+  if(it.bgState){ $("#bgTol").value=it.bgState.tol; document.querySelector(`input[name=bgFill][value="${it.bgState.white?"white":"clear"}"]`).checked=true; }
+  bg.disp=Math.max(0.05,Math.min(3,780/bg.base.width,520/bg.base.height));
+  bgSetMode(it.bgState?it.bgState.mode:(bg.cut?"pdf":"pixel"));
+  $("#bgOrig").hidden=!it.preBg;
+  $("#bgDlg").showModal(); bgRun();
+}
+(function(){
+  const c=$("#bgCanvas"); let cur=null;
+  const pos=e=>{const b=c.getBoundingClientRect();return [(e.clientX-b.left)/b.width*bg.base.width,(e.clientY-b.top)/b.height*bg.base.height]};
+  c.addEventListener("pointerdown",e=>{ if(!bg.src) return; e.preventDefault(); c.setPointerCapture(e.pointerId);
+    cur={tool:toolNow(),r:Math.max(bg.base.width,bg.base.height)*(+$("#bgSize").value),pts:[pos(e)]}; bg.strokes.push(cur); bgDraw(); });
+  c.addEventListener("pointermove",e=>{ if(!cur) return; cur.pts.push(pos(e)); bgDraw(); });
+  const end=()=>{ if(!cur) return; cur=null; bgRun(); };
+  c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
+})();
+$("#bgAuto").addEventListener("click",()=>{ bg.strokes=[]; bgSetMode(bg.cut?"pdf":"pixel"); bgRun(); });
+$("#bgUndo").addEventListener("click",()=>{ if(bg.strokes.length){ bg.strokes.pop(); bgRun(); } });
+$("#bgClear").addEventListener("click",()=>{ bg.strokes=[]; bgRun(); });
+$("#bgTol").addEventListener("change",bgRun);
+document.querySelectorAll("input[name=bgMode]").forEach(r=>r.addEventListener("change",()=>{ bgSetMode(modeNow()); bgRun(); }));
+$("#bgPaper").addEventListener("change",()=>$("#bgStage").classList.toggle("white",$("#bgPaper").checked));
+$("#bgApply").addEventListener("click",()=>{
+  const it=bg.it; if(!it||!bg.out) return;
+  const white=document.querySelector("input[name=bgFill]:checked").value==="white";
+  let c=bg.out; if(white){ const w=document.createElement("canvas"); w.width=c.width; w.height=c.height; const x=w.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,w.width,w.height); x.drawImage(c,0,0); c=w; }
+  it.preBg=it.preBg||it.canvas; it.canvas=c; it.thumb=thumbOf(c); it.w=c.width; it.h=c.height;
+  it.bgState={mode:bg.mode,strokes:JSON.parse(JSON.stringify(bg.strokes)),tol:+$("#bgTol").value,white};
+  $("#bgDlg").close(); renderResults(); setStatus("背景を消しました。保存・印刷には、背景を消した絵が使われます。");
+});
+$("#bgOrig").addEventListener("click",()=>{ const it=bg.it; if(it&&it.preBg){ it.canvas=it.preBg; it.preBg=null; it.bgState=null; it.thumb=thumbOf(it.canvas); it.w=it.canvas.width; it.h=it.canvas.height; } $("#bgDlg").close(); renderResults(); });
+$("#bgOne").addEventListener("click",()=>{ if(viewerItem) openBg(viewerItem); });
+
+/* ---- 利用条件への同意 ---- */
+function syncAgree(){const ok=$("#agree").checked;document.querySelector(".rules").classList.toggle("done",ok);
+  document.querySelectorAll(".steps .card:not(.rules)").forEach(c=>c.classList.toggle("locked",!ok));}
+$("#agree").addEventListener("change",syncAgree); syncAgree();
+$("#agGo").addEventListener("click",()=>{$("#agreeDlg").close();const r=document.querySelector(".rules");r.scrollIntoView({behavior:"smooth",block:"start"});$("#agree").focus();});
+/* ---- やり直し ---- */
+const EMPTY_HTML=document.getElementById("resBody").innerHTML;
+$("#reset").addEventListener("click",()=>{
+  for(const f of state.files){try{f.doc.destroy()}catch(e){}}
+  state.files=[];state.units=[];state.current=null;state.tab="img";
+  state.rows=[];state.rowsEdited=false;$("#files").innerHTML="";$("#resBody").innerHTML=EMPTY_HTML;$("#summary").textContent="";$("#resTitle").textContent="取り出した挿絵";
+  fileInput.value="";$("#run").textContent="挿絵を取り出す";$("#run").disabled=true;
+  ["#saveDir","#saveZip","#printBtn"].forEach(s=>$(s).disabled=true);
+  setStatus("最初からやり直します。PDFを入れてください。",0);
+});
+/* ---- 取り出し本体 ---- */
+$("#run").addEventListener("click",run);
+async function run(){
+  if(!$("#agree").checked){setStatus("「利用条件」を確認し、同意のチェックを入れてください。");$("#agreeDlg").showModal();return}
+  const units=parseUnits();
+  if(!units.length){setStatus("単元の一覧が空です。1行に「開始ページ 単元名」を入れてください。");return}
+
+  $("#run").disabled=true; state.units=units;
+  const subj=$("#subject").value, MIN=subj==="国語"?150:100;
+  const doGroup=$("#optGroup").checked, doFig=$("#optFig").checked;
+  const totalPages=state.files.reduce((s,f)=>s+f.pages,0); let done=0;
+  for(const f of state.files){
+    // 同じ画像が何ページにも出てくるもの（飾り）を数える
+    const doc=f.doc;
+    const useCount=new Map(); const pageData=[];
+    for(let p=1;p<=f.pages;p++){
+      const page=await doc.getPage(p); const pg=await readPage(page);
+      pageData[p]=pg; new Set(pg.images.map(i=>i.id)).forEach(id=>useCount.set(id,(useCount.get(id)||0)+1));
+      setStatus(`${f.name}：ページを読んでいます ${p}/${f.pages}`,(done+p*0.3)/totalPages);
+    }
+    for(let p=1;p<=f.pages;p++){
+      const page=await doc.getPage(p); const pg=pageData[p]; const {W,H}=pg;
+      setStatus(`${f.name}：${p}/${f.pages}ページ目から取り出しています`,(done+f.pages*0.3+p*0.7)/totalPages);
+      const kept=[]; const seen=new Set();
+      for(const im of pg.images){
+        if(seen.has(im.id)) continue; seen.add(im.id);
+        if(im.isMask||Math.min(im.w,im.h)<MIN||(useCount.get(im.id)||0)>3) continue;
+        const r=clampR(im.r,W,H); if(rw(r)<30||rh(r)<30) continue;
+        const lab=pageLabel(f.map,p,r,W); if(!lab) continue;
+        const u=unitOf(f,lab.num); if(!u) continue;
+        let c;
+        let cut=null;
+        if(im.masked){ c=await cropRender(page,r); // 切り抜き（マスク）がある絵は、見えているとおりに切り出す
+          if(im.clips&&im.clips.length){ try{ cut=makeCut(objToCanvas(await getObj(page,im.id)),im,r,c.width,c.height); }catch(e){} } }
+        else { const o=await getObj(page,im.id); c=objToCanvas(o); }
+        if(!c) continue;
+        if(isUniform(c)) continue;
+        kept.push({r,c,lab,u,id:im.id,im,cut});
+      }
+      // 見開きで左右に分かれた絵をつなぐ
+      if(f.map.mode==="spread"){
+        const mid=W/2;
+        for(const a of kept) for(const b of kept){
+          if(a===b||a.drop||b.drop) continue;
+          if(Math.abs(a.r.x0-mid)<4&&Math.abs(b.r.x1-mid)<4&&Math.abs(a.r.y0-b.r.y0)<4&&Math.abs(a.r.y1-b.r.y1)<4&&a.u===b.u){
+            const ur=union(a.r,b.r); a.c=await cropRender(page,ur); a.r=ur; a.lab=pageLabel(f.map,p,ur,W); a.im=null; a.cut=null; b.drop=true;
+          }
+        }
+      }
+      const live=kept.filter(k=>!k.drop).sort((a,b)=>(Math.round(a.r.y0/20)-Math.round(b.r.y0/20))||(a.r.x0-b.r.x0));
+      for(const k of live) addItem(k.u,"img",k.lab.label,k.c,{f,p,r:k.r,cut:k.cut||null,cutR:k.cut?{...k.r}:null});
+      if(doGroup&&live.length>=2){
+        for(const r of groupRegions(pg,live.map(k=>k.r))){
+          const lab=pageLabel(f.map,p,r,W); if(!lab) continue; const u=unitOf(f,lab.num); if(!u) continue;
+          addItem(u,"group",lab.label,await cropRender(page,r),{f,p,r});
+        }
+      }
+      if(doFig){
+        for(const r of mathRegions(pg)){
+          const lab=pageLabel(f.map,p,r,W); if(!lab) continue; const u=unitOf(f,lab.num); if(!u) continue;
+          addItem(u,"fig",lab.label,await cropRender(page,r),{f,p,r});
+        }
+      }
+      page.cleanup();
+    }
+    done+=f.pages;
+  }
+  nameItems();
+  setStatus("取り出しが終わりました。いらないもののチェックを外してから保存してください。",1);
+  $("#run").disabled=false; $("#run").textContent="もう一度取り出す"; ["#saveDir","#saveZip","#printBtn"].forEach(s=>$(s).disabled=false);
+  state.current=state.units.find(u=>u.items.length)||state.units[0]; renderResults();
+}
+function addItem(u,kind,page,canvas,src){ u.items.push({kind,page,canvas,thumb:thumbOf(canvas),keep:true,w:canvas.width,h:canvas.height,src,orig:src?{...src.r}:null,edited:false}); }
+function nameItems(){
+  for(const u of state.units){
+    const cnt={};
+    for(const it of u.items){
+      const key=it.kind+it.page; cnt[key]=(cnt[key]||0)+1; const n=pad2(cnt[key]);
+      it.file=it.kind==="img"?`${it.page}_${n}.png`:it.kind==="group"?`まとまり画像/${it.page}_まとまり${n}.png`:`式・数直線/${it.page}_式・数直線${n}.png`;
+    }
+  }
+}
+
+/* ---- 結果の表示 ---- */
+const KIND={img:"挿絵",group:"まとまり",fig:"式・数直線"};
+const keptItems=()=>state.units.filter(u=>u.keep).flatMap(u=>u.items.filter(i=>i.keep));
+function updateSummary(){const all=state.units.flatMap(u=>u.items);
+  $("#summary").textContent=`${state.units.length}単元・挿絵${all.filter(i=>i.kind==="img").length}／まとまり${all.filter(i=>i.kind==="group").length}／式・数直線${all.filter(i=>i.kind==="fig").length}（保存するもの ${keptItems().length}）`}
+function renderResults(){
+  updateSummary();
+  const body=$("#resBody"); body.innerHTML="";
+  const lay=document.createElement("div"); lay.className="layout";
+  const list=document.createElement("nav"); list.className="units"; list.setAttribute("aria-label","単元");
+  for(const u of state.units){
+    const row=document.createElement("div"); row.className="urow";
+    const ix=state.units.indexOf(u);
+    row.innerHTML=`<input type="checkbox" id="uk${ix}" aria-label="${esc(u.folder)}を保存する"${u.keep?" checked":""}${u.items.length?"":" disabled"}>`;
+    const b=document.createElement("button"); b.type="button";
+    b.innerHTML=`<span>${esc(u.folder)}</span><span class="c">${u.items.length}</span>`;
+    b.setAttribute("aria-current",u===state.current?"true":"false");
+    b.addEventListener("click",()=>{state.current=u;renderResults()});
+    row.querySelector("input").addEventListener("change",ev=>{u.keep=ev.target.checked;updateSummary()});
+    row.appendChild(b); list.appendChild(row);
+  }
+  const view=document.createElement("div"); view.className="unitview";
+  const u=state.current;
+  if(u){
+    const tabs=document.createElement("div"); tabs.className="tabs";
+    for(const kd of ["img","group","fig"]){
+      const n=u.items.filter(i=>i.kind===kd).length;
+      const b=document.createElement("button"); b.type="button"; b.textContent=`${KIND[kd]}（${n}）`;
+      b.setAttribute("aria-pressed",state.tab===kd?"true":"false"); b.addEventListener("click",()=>{state.tab=kd;renderResults()});
+      tabs.appendChild(b);
+    }
+    const allOff=document.createElement("button"); allOff.type="button"; allOff.textContent="この種類をすべて外す";
+    allOff.addEventListener("click",()=>{u.items.filter(i=>i.kind===state.tab).forEach(i=>i.keep=false);renderResults()});
+    const allOn=document.createElement("button"); allOn.type="button"; allOn.textContent="すべて入れる";
+    allOn.addEventListener("click",()=>{u.items.filter(i=>i.kind===state.tab).forEach(i=>i.keep=true);renderResults()});
+    tabs.append(allOff,allOn);
+    view.appendChild(tabs);
+    const items=u.items.filter(i=>i.kind===state.tab);
+    if(!items.length){const e=document.createElement("div");e.className="empty";e.textContent=`この単元には「${KIND[state.tab]}」がありません。`;view.appendChild(e)}
+    const grid=document.createElement("div"); grid.className="grid";
+    items.forEach((it,ix)=>{
+      const t=document.createElement("div"); t.className="tile"+(it.keep?"":" off");
+      const id=`keep_${state.units.indexOf(u)}_${state.tab}_${ix}`;
+      t.innerHTML=`<div class="img"><img alt="${esc(it.file)}" src="${it.thumb}"></div><div class="nm">${esc(it.file.split("/").pop())}<br><span class="hint">${it.w}×${it.h}px</span>${it.edited?'<span class="pill ok">手直し済み</span>':''}${it.bgState?'<span class="pill bg">背景なし</span>':''}</div><div class="acts"><button type="button" class="small" data-crop>切り取りを直す</button><button type="button" class="small" data-bg>${it.bgState?"背景を直す":"背景を消す"}</button></div><label for="${id}"><input id="${id}" type="checkbox"${it.keep?" checked":""}>保存・印刷する</label>`;
+      t.querySelector(".img").addEventListener("click",()=>{ viewerItem=it; $("#printOne").hidden=false; $("#cropOne").hidden=!it.src; $("#bgOne").hidden=false; $("#viewerImg").src=it.canvas.toDataURL("image/png"); $("#viewerCap").textContent=`${u.folder}/${it.file}（${it.w}×${it.h}px）`; $("#viewer").showModal(); });
+      t.querySelector("input").addEventListener("change",ev=>{it.keep=ev.target.checked;t.classList.toggle("off",!it.keep);updateSummary()});
+      t.querySelector("[data-crop]").addEventListener("click",()=>openCrop(it));
+      t.querySelector("[data-bg]").addEventListener("click",()=>openBg(it));
+      grid.appendChild(t);
+    });
+    view.appendChild(grid);
+  }
+  lay.append(list,view); body.appendChild(lay);
+  $("#resTitle").textContent=u?`${$("#grade").value}年 ${$("#subject").value}　${u.folder}`:"取り出した挿絵";
+}
+
+/* ---- 保存 ---- */
+function sourceText(){return `出典：${$("#source").value||"（教科書名・発行者を入れてください）"}\nこのフォルダの画像は、学校が購入した指導書の付属データから、授業で利用するために取り出したものです。\n・著作権法第35条および付属データの使用許諾条件の範囲で、授業の準備と授業での提示・配布に利用してください。\n・インターネット上への公開や、だれでも見られる場所への保存はしないでください。\n・ほかの教職員との共有や、授業の外（研究会、学級通信、動画など）での利用は、使用許諾条件を確認し、必要に応じて発行者の許諾を得て、出典を明示してください。\n・利用が法令や使用許諾条件に合っているかの判断と責任は利用者にあります。\n`}
+// フォルダを選べないブラウザ（Chrome・Edge 以外）では、ZIPで保存する
+if(!window.showDirectoryPicker){ $("#saveDir").hidden=true; $("#saveZip").hidden=false; }
+$("#saveDir").addEventListener("click",async()=>{
+  let root; try{root=await window.showDirectoryPicker({id:"sashie-save",mode:"readwrite",startIn:"desktop"})}catch(e){ setStatus(e&&e.name!=="AbortError"?"そのフォルダには保存できませんでした。別のフォルダを選んでください。":"フォルダが選ばれませんでした。「このフォルダは開けません」と出たときは、デスクトップやUSBメモリなど、別のフォルダを選んでください。"); return }
+  // 教科のフォルダの中に、学年のフォルダを作る（例：算数／4年／01_単元名）
+  const base=await (await root.getDirectoryHandle($("#subject").value,{create:true})).getDirectoryHandle(`${$("#grade").value}年`,{create:true});
+  let wrote=0,skipped=0,failed=0,i=0; const total=keptItems().length;
+  for(const u of state.units.filter(u=>u.keep)){
+    const keep=u.items.filter(x=>x.keep); if(!keep.length) continue;
+    const ud=await base.getDirectoryHandle(u.folder,{create:true});
+    for(const it of keep){
+      const parts=it.file.split("/"); let dir=ud;
+      if(parts.length>1) dir=await ud.getDirectoryHandle(parts[0],{create:true});
+      const fname=parts[parts.length-1];
+      let exists=true; try{await dir.getFileHandle(fname)}catch(e){exists=false}
+      if(exists){skipped++}else{try{const fh=await dir.getFileHandle(fname,{create:true});const w=await fh.createWritable();await w.write(await toBlob(it.canvas));await w.close();wrote++}catch(e){failed++}}
+      setStatus(`保存しています ${++i}/${total}`,i/total);
+    }
+    try{await ud.getFileHandle("出典.txt")}catch(e){const fh=await ud.getFileHandle("出典.txt",{create:true});const w=await fh.createWritable();await w.write(sourceText());await w.close()}
+  }
+  setStatus(`保存しました：新しく${wrote}枚${skipped?`、同じ名前があったので保存しなかったもの${skipped}枚`:""}${failed?`、保存できなかったもの${failed}枚（別のフォルダを選んでください）`:""}。保存先：${root.name}／${$("#subject").value}／${$("#grade").value}年`,1);
+});
+$("#saveZip").addEventListener("click",async()=>{
+  const zip=new JSZip(); const top=`${$("#subject").value}/${$("#grade").value}年`;
+  let i=0; const total=keptItems().length;
+  for(const u of state.units.filter(u=>u.keep)){
+    const keep=u.items.filter(x=>x.keep); if(!keep.length) continue;
+    zip.file(`${top}/${u.folder}/出典.txt`,sourceText());
+    for(const it of keep){zip.file(`${top}/${u.folder}/${it.file}`,await toBlob(it.canvas));setStatus(`ZIPを作っています ${++i}/${total}`,i/total)}
+  }
+  const blob=await zip.generateAsync({type:"blob"},m=>setStatus(`ZIPを作っています ${m.percent.toFixed(0)}%`));
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`挿絵_${$("#subject").value}_${$("#grade").value}年.zip`; document.body.appendChild(a); a.click(); a.remove();
+  setStatus("ZIPファイルを「ダウンロード」に保存しました。開くと「教科／○年／単元」のフォルダができます。",1);
+});
+
+/* ---- 印刷 ---- */
+let viewerItem=null;
+function printItems(){
+  const u=state.current; if(!u) return [];
+  const what=document.querySelector("input[name=pdWhat]:checked").value;
+  return u.items.filter(i=>i.keep&&(what==="all"||i.kind===state.tab));
+}
+const srcOn=()=>$("#srcMain").checked;
+document.querySelectorAll(".srcOpt").forEach(c=>c.addEventListener("change",()=>{document.querySelectorAll(".srcOpt").forEach(o=>o.checked=c.checked);try{localStorage.setItem("sashie_src",c.checked?"1":"0")}catch(e){} if($("#printDlg").open) refreshPrintDlg();}));
+try{const v=localStorage.getItem("sashie_src")==="1"; document.querySelectorAll(".srcOpt").forEach(o=>o.checked=v);}catch(e){}
+function pdOpts(){return {per:+document.querySelector("input[name=pdPer]:checked").value, ori:document.querySelector("input[name=pdOri]:checked").value, src:srcOn()}}
+/* 1枚の紙に、絵がいちばん大きく入る並べ方（列×行）と向きを選ぶ（A4・余白5mm） */
+function bestLayout(items,o){
+  const oris=o.ori==="auto"?["portrait","landscape"]:[o.ori]; let best=null; const n=items.length;
+  for(const ori of oris){ const W=ori==="portrait"?199:286, H=(ori==="portrait"?286:199)-(o.src?6:0);
+    for(let c=1;c<=n;c++){ const r=Math.ceil(n/c); if(c>1&&(c-1)*r>=n) continue;
+      const cw=(W-(c-1)*3)/c, ch=(H-(r-1)*3)/r; let a=0;
+      for(const it of items){ const k=Math.min(cw/it.w,ch/it.h); a+=it.w*k*it.h*k; }
+      if(!best||a>best.a*1.001) best={a,cols:c,rows:r,land:ori==="landscape"}; } }
+  return best;
+}
+function sheetDOM(items,o,u,cls){
+  const L=bestLayout(items,o);
+  const sh=document.createElement("div"); sh.className=cls+(L.land?" land":"");
+  const cells=document.createElement("div"); cells.className="cells"; cells.style.gridTemplateColumns=`repeat(${L.cols},1fr)`; cells.style.gridTemplateRows=`repeat(${L.rows},1fr)`;
+  items.forEach(it=>{const c=document.createElement("div");c.className="cell";const im=new Image();im.src=cls==="sheet"?it.canvas.toDataURL("image/png"):it.thumb;c.appendChild(im);cells.appendChild(c)});
+  sh.appendChild(cells);
+  if(o.src){ const foot=document.createElement("div"); foot.className="foot"; foot.textContent=`出典：${$("#source").value||"（教科書名・発行者を入れてください）"}　${u.folder}　${items.map(i=>i.page).join("・")}`; sh.appendChild(foot); }
+  sh.dataset.land=L.land?"1":""; return sh;
+}
+function refreshPrintDlg(){
+  const u=state.current, items=printItems(), o=pdOpts();
+  $("#pdUnit").textContent=u?`単元：${u.folder}`:"";
+  $("#pdTabLabel").textContent=`いま開いている「${KIND[state.tab]}」でチェックが入っているもの（${u?u.items.filter(i=>i.keep&&i.kind===state.tab).length:0}こ）`;
+  const sheets=Math.ceil(items.length/o.per);
+  $("#pdCount").textContent=items.length?`${items.length}この画像を、A4 ${sheets}枚に印刷します。`:"印刷するものがありません。チェックを入れてください。";
+  $("#pdGo").disabled=!items.length;
+  const pv=$("#pdPreview"); pv.innerHTML="";
+  if(items.length){const sh=sheetDOM(items.slice(0,o.per),o,u,"pd-sheet"); const land=!!sh.dataset.land; const w=land?300:212, h=land?212:300; sh.style.width=w+"px"; sh.style.height=h+"px"; pv.appendChild(sh); const cap=document.createElement("p");cap.className="hint";cap.textContent=`1枚目の見本（${land?"よこ":"たて"}）`;pv.appendChild(cap)}
+}
+function doPrint(items,o,u){
+  const area=$("#printArea"); area.innerHTML="";
+  for(let s=0;s<items.length;s+=o.per) area.appendChild(sheetDOM(items.slice(s,s+o.per),o,u,"sheet"));
+  setTimeout(()=>window.print(),300);
+}
+$("#printBtn").addEventListener("click",()=>{ if(!state.current) return; refreshPrintDlg(); $("#printDlg").showModal(); });
+document.querySelectorAll("#printDlg input").forEach(i=>i.addEventListener("change",refreshPrintDlg));
+$("#pdGo").addEventListener("click",()=>{const items=printItems(); if(!items.length) return; $("#printDlg").close(); doPrint(items,pdOpts(),state.current);});
+$("#printOne").addEventListener("click",()=>{ if(!viewerItem) return; const it=viewerItem; $("#viewer").close(); doPrint([it],{per:1,ori:"auto",src:srcOn()},state.current); });
+
+
+</script>
+</body>
+</html>
