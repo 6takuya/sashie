@@ -18,11 +18,11 @@
   </g>
   <!-- 3つのはたらき -->
   <g font-size="40" text-anchor="middle">
-    <rect x="50" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
-    <text x="158" y="505" fill="#bf360c">くらべる</text>
-    <rect x="292" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
-    <text x="400" y="505" fill="#bf360c">つなげる</text>
-    <rect x="534" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
-    <text x="642" y="505" fill="#bf360c">まとめる</text>
+    <rect x="38" y="458" width="230" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="153" y="505" fill="#bf360c">くらべて〜</text>
+    <rect x="285" y="458" width="230" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="400" y="505" fill="#bf360c">つなげて〜</text>
+    <rect x="532" y="458" width="230" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="647" y="505" fill="#bf360c">まとめて〜</text>
   </g>
 </svg>
