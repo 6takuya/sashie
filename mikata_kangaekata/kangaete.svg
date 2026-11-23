@@ -1,13 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="960" height="320">
   <style>text{font-family:"IPAGothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-weight:bold}</style>
-  <path d="M90 120 Q60 120 50 170 L40 330 Q36 390 100 396 L840 396 Q900 392 904 330 L912 160 Q914 120 870 118 L760 116 Q800 80 860 20 Q760 70 700 116 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="12" stroke-linejoin="round"/>
-  <g transform="translate(220 285) scale(0.8)" stroke="#1a1a1a" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M0 -150 L0 -122 M-84 -124 L-68 -102 M84 -124 L68 -102 M-128 -60 L-104 -50 M128 -60 L104 -50" stroke="#f9a825" stroke-width="12" fill="none"/>
-    <path d="M-38 54 C-38 30 -82 6 -82 -34 A82 82 0 1 1 82 -34 C82 6 38 30 38 54 Z" fill="#fff176" stroke-width="12"/>
-    <path d="M-20 52 L-20 14 L-36 -8 M20 52 L20 14 L36 -8 M-36 -8 Q-18 -28 0 -8 Q18 -28 36 -8" fill="none" stroke-width="8"/>
-    <rect x="-42" y="54" width="84" height="20" rx="6" fill="#90a4ae" stroke-width="10"/>
-    <rect x="-36" y="74" width="72" height="20" rx="6" fill="#90a4ae" stroke-width="10"/>
-    <path d="M-20 94 Q0 116 20 94" fill="#546e7a" stroke-width="10"/>
+  <g transform="translate(10 10)">
+    <path d="M120 298 L122 246 C72 214 60 146 88 94 C118 38 214 18 270 58 C304 84 312 120 308 150 L330 192 Q334 202 322 204 L310 206 L312 226 Q312 240 296 240 L266 240 L266 298 Z" fill="#bbdefb" stroke="#1a1a1a" stroke-width="12" stroke-linejoin="round"/>
+    <polygon points="207.1,139.9 223.5,140.6 223.5,155.4 207.1,156.1 202.0,168.5 213.1,180.6 202.6,191.1 190.5,180.0 178.1,185.1 177.4,201.5 162.6,201.5 161.9,185.1 149.5,180.0 137.4,191.1 126.9,180.6 138.0,168.5 132.9,156.1 116.5,155.4 116.5,140.6 132.9,139.9 138.0,127.5 126.9,115.4 137.4,104.9 149.5,116.0 161.9,110.9 162.6,94.5 177.4,94.5 178.1,110.9 190.5,116.0 202.6,104.9 213.1,115.4 202.0,127.5" fill="#fb8c00" stroke="#1a1a1a" stroke-width="8" stroke-linejoin="round"/><circle cx="170" cy="148" r="13.3" fill="#ffffff" stroke="#1a1a1a" stroke-width="7"/>
+    <polygon points="255.1,93.8 267.4,93.8 267.4,106.2 255.1,106.2 250.0,115.1 256.1,125.9 245.3,132.0 239.1,121.4 228.9,121.4 222.7,132.0 211.9,125.9 218.0,115.1 212.9,106.2 200.6,106.2 200.6,93.8 212.9,93.8 218.0,84.9 211.9,74.1 222.7,68.0 228.9,78.6 239.1,78.6 245.3,68.0 256.1,74.1 250.0,84.9" fill="#fdd835" stroke="#1a1a1a" stroke-width="8" stroke-linejoin="round"/><circle cx="234" cy="100" r="7.7" fill="#ffffff" stroke="#1a1a1a" stroke-width="7"/>
   </g>
-  <text x="450" y="300" font-size="120" fill="#1a1a1a">考えて</text>
+  <g fill="#1e88e5"><circle cx="352" cy="70" r="9"/><circle cx="374" cy="44" r="13"/></g>
+  <text x="430" y="222" font-size="130" fill="#1a1a1a">考えて</text>
 </svg>
