@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420">
+  <style>text{font-family:"IPAGothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-weight:bold}</style>
+  <path d="M90 120 Q60 120 50 170 L40 330 Q36 390 100 396 L840 396 Q900 392 904 330 L912 160 Q914 120 870 118 L760 116 Q800 80 860 20 Q760 70 700 116 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="12" stroke-linejoin="round"/>
+  <g transform="translate(220 285) scale(0.8)" stroke="#1a1a1a" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 -150 L0 -122 M-84 -124 L-68 -102 M84 -124 L68 -102 M-128 -60 L-104 -50 M128 -60 L104 -50" stroke="#f9a825" stroke-width="12" fill="none"/>
+    <path d="M-38 54 C-38 30 -82 6 -82 -34 A82 82 0 1 1 82 -34 C82 6 38 30 38 54 Z" fill="#fff176" stroke-width="12"/>
+    <path d="M-20 52 L-20 14 L-36 -8 M20 52 L20 14 L36 -8 M-36 -8 Q-18 -28 0 -8 Q18 -28 36 -8" fill="none" stroke-width="8"/>
+    <rect x="-42" y="54" width="84" height="20" rx="6" fill="#90a4ae" stroke-width="10"/>
+    <rect x="-36" y="74" width="72" height="20" rx="6" fill="#90a4ae" stroke-width="10"/>
+    <path d="M-20 94 Q0 116 20 94" fill="#546e7a" stroke-width="10"/>
+  </g>
+  <text x="450" y="300" font-size="120" fill="#1a1a1a">考えて</text>
+</svg>
