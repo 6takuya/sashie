@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" width="800" height="560">
+  <style>text{font-family:"IPAGothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-weight:bold}</style>
+  <rect x="14" y="14" width="772" height="532" rx="48" fill="#ffffff" stroke="#1565c0" stroke-width="16"/>
+  <rect x="14" y="14" width="772" height="110" rx="48" fill="#1565c0"/>
+  <rect x="14" y="80" width="772" height="44" fill="#1565c0"/>
+  <text x="400" y="100" font-size="76" fill="#ffffff" text-anchor="middle" letter-spacing="40">見方</text>
+  <!-- 目玉 -->
+  <g transform="translate(400 318) scale(0.86)" stroke="#1a1a1a" stroke-linecap="round" stroke-linejoin="round">
+    <!-- まつげ -->
+    <path d="M-120 -112 L-138 -158 M-40 -132 L-46 -182 M40 -132 L46 -182 M120 -112 L138 -158" stroke-width="16" fill="none"/>
+    <!-- 白目 -->
+    <path d="M-230 0 Q0 -200 230 0 Q0 200 -230 0 Z" fill="#ffffff" stroke-width="16"/>
+    <!-- 黒目 -->
+    <circle cx="0" cy="0" r="82" fill="#1e88e5" stroke-width="12"/>
+    <circle cx="0" cy="0" r="42" fill="#1a1a1a" stroke="none"/>
+    <circle cx="-26" cy="-30" r="18" fill="#ffffff" stroke="none"/>
+    <circle cx="22" cy="18" r="8" fill="#ffffff" stroke="none"/>
+  </g>
+  <!-- キラッ -->
+  <g stroke="#f9a825" stroke-width="12" stroke-linecap="round">
+    <path d="M110 300 L70 300 M122 230 L88 205 M122 370 L88 395"/>
+    <path d="M690 300 L730 300 M678 230 L712 205 M678 370 L712 395"/>
+  </g>
+  <text x="400" y="510" font-size="52" fill="#1565c0" text-anchor="middle">〜に<tspan fill="#d32f2f">着目</tspan>して</text>
+</svg>
