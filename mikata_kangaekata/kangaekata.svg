@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" width="800" height="560">
+  <style>text{font-family:"IPAGothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-weight:bold}</style>
+  <rect x="14" y="14" width="772" height="532" rx="48" fill="#ffffff" stroke="#e65100" stroke-width="16"/>
+  <rect x="14" y="14" width="772" height="110" rx="48" fill="#e65100"/>
+  <rect x="14" y="80" width="772" height="44" fill="#e65100"/>
+  <text x="400" y="100" font-size="76" fill="#ffffff" text-anchor="middle" letter-spacing="12">考え方</text>
+  <!-- 電球 -->
+  <g transform="translate(400 290)" stroke="#1a1a1a" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#f9a825" stroke-width="13">
+      <path d="M-128 -128 L-108 -108 M128 -128 L108 -108 M-172 -30 L-130 -30 M172 -30 L130 -30 M-128 70 L-106 52 M128 70 L106 52"/>
+    </g>
+    <path d="M-44 70 C-44 40 -94 10 -94 -36 A94 94 0 1 1 94 -36 C94 10 44 40 44 70 Z" fill="#fff176" stroke-width="14"/>
+    <!-- フィラメント（つながる線） -->
+    <path d="M-26 66 L-26 18 L-44 -6 M26 66 L26 18 L44 -6 M-44 -6 Q-22 -30 0 -6 Q22 -30 44 -6" fill="none" stroke-width="9"/>
+    <rect x="-48" y="70" width="96" height="22" rx="6" fill="#90a4ae" stroke-width="12"/>
+    <rect x="-42" y="92" width="84" height="22" rx="6" fill="#90a4ae" stroke-width="12"/>
+    <path d="M-24 114 Q0 140 24 114" fill="#546e7a" stroke-width="12"/>
+  </g>
+  <!-- 3つのはたらき -->
+  <g font-size="40" text-anchor="middle">
+    <rect x="50" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="158" y="505" fill="#bf360c">くらべる</text>
+    <rect x="292" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="400" y="505" fill="#bf360c">つなげる</text>
+    <rect x="534" y="458" width="216" height="66" rx="33" fill="#ffe0b2"/>
+    <text x="642" y="505" fill="#bf360c">まとめる</text>
+  </g>
+</svg>
